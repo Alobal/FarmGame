@@ -1,0 +1,55 @@
+using Item;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
+
+public class ItemToolTipUI : MonoBehaviour
+{
+    [SerializeField] private TextMeshProUGUI item_name;
+    [SerializeField] private TextMeshProUGUI item_type;
+    [SerializeField] private TextMeshProUGUI item_desc;
+    [SerializeField] private TextMeshProUGUI item_price;
+
+    /// <summary>
+    /// 获取Slot物品信息进行Tip显示
+    /// </summary>
+    /// <param name="item_id"></param>
+    /// <param name="slot_type"></param>
+    /// <param name="pos"></param>
+    public void Init(int item_id,SlotType slot_type,Vector3 pos)
+    {
+        var item_detail = PackDataManager.instance.GetItemDetail(item_id);
+        if (item_detail == null) return;
+
+        item_name.text = item_detail.item_name;
+        item_type.text = item_detail.item_type.ToText();
+        item_desc.text = item_detail.description;
+        
+        int price = slot_type == SlotType.Player ?item_detail.sell_price : item_detail.price;
+        item_price.text = price != 0 ?price.ToString() : "----";
+
+        transform.position = AdjustPosInScreen(pos);
+
+    }
+
+
+    /// <summary>
+    /// 避免Tip窗口超出屏幕
+    /// </summary>
+    /// <param name="pos"></param>
+    /// <returns></returns>
+    private Vector3 AdjustPosInScreen(Vector3 pos)
+    {
+        //FIX: start的时候获取自适应的高度错误
+        var rect=GetComponent<RectTransform>();
+        float exceed_height = pos.y - rect.sizeDelta.y * rect.localScale.y;//向下超出 负数
+        float exceed_weight = pos.x + rect.sizeDelta.x * rect.localScale.x - Screen.width;
+        exceed_weight = Math.Max(exceed_weight, 0);
+        exceed_height = Math.Min(exceed_height, 0);
+        pos = new Vector3(pos.x - exceed_weight, pos.y - exceed_height, pos.z);
+        return pos;
+    }
+}

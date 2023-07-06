@@ -1,0 +1,7 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <ui:VisualElement name="Row" style="flex-direction: row; align-items: center; max-height: none; justify-content: flex-start; -unity-font-definition: url(&apos;project://database/Assets/OriginalAssets/M%20Studio/fonts/NotoSerifSC-Regular%20SDF.asset?fileID=11400000&amp;guid=a8992c93087b9ff42b963a12608834f2&amp;type=2#NotoSerifSC-Regular SDF&apos;);">
+        <ui:VisualElement name="Icon" style="background-image: url(&apos;project://database/Assets/OriginalAssets/logo.JPG?fileID=2800000&amp;guid=578bd4779c61a47469ada87446a469b5&amp;type=3#logo&apos;); width: 50px; height: 100%; flex-direction: row; max-height: none; -unity-background-scale-mode: scale-to-fit; min-width: initial; min-height: initial;" />
+        <ui:Label text="一个新物体" display-tooltip-when-elided="true" name="Name" style="padding-left: 9px; padding-right: 9px; padding-top: 9px; padding-bottom: 9px; font-size: 24px; -unity-font-style: normal;" />
+        <ui:Label display-tooltip-when-elided="true" name="ID" style="display: none; visibility: visible;" />
+    </ui:VisualElement>
+</ui:UXML>

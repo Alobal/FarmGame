@@ -1,0 +1,52 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="True">
+    <ui:VisualElement name="Container" style="flex-grow: 1; flex-shrink: 1; flex-direction: row; align-items: stretch; -unity-font-definition: url(&apos;project://database/Assets/OriginalAssets/M%20Studio/fonts/NotoSerifSC-Regular%20SDF.asset?fileID=11400000&amp;guid=a8992c93087b9ff42b963a12608834f2&amp;type=2#NotoSerifSC-Regular SDF&apos;);">
+        <ui:VisualElement name="ItemList" style="flex-direction: column; flex-grow: 0; width: 30%; justify-content: flex-start; align-items: flex-start; flex-basis: initial;">
+            <ui:VisualElement name="Header" style="width: 100%; height: auto; flex-direction: row; flex-grow: 0; align-items: stretch; max-height: none; justify-content: space-between;">
+                <ui:Label text="物品列表" display-tooltip-when-elided="true" style="font-size: 23px; -unity-font-style: normal;" />
+                <ui:Button text="+" display-tooltip-when-elided="true" name="AddButton" style="height: 100%; width: 46px; font-size: 21px;" />
+            </ui:VisualElement>
+            <ui:ListView focusable="true" header-title="ListView" name="ListView" reorderable="true" show-border="true" fixed-item-height="60" style="width: 100%; flex-grow: 1;" />
+        </ui:VisualElement>
+        <ui:ScrollView name="ItemDetail" style="flex-grow: 1; height: 100%; justify-content: space-around; flex-direction: column; align-items: stretch;">
+            <ui:VisualElement name="Header" style="width: 100%; height: auto; flex-direction: row; flex-grow: 0; align-items: stretch; max-height: none; justify-content: space-between;">
+                <ui:Label text="详细介绍" display-tooltip-when-elided="true" style="font-size: 23px; -unity-font-style: normal;" />
+                <ui:Button text="删除" display-tooltip-when-elided="true" name="DeleteButton" style="height: 100%; width: auto; font-size: 14px;" />
+            </ui:VisualElement>
+            <ui:VisualElement name="Content" style="flex-grow: 1; justify-content: flex-start; align-items: stretch;">
+                <ui:VisualElement name="Row1" style="border-top-left-radius: 0; border-bottom-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-left-color: rgb(0, 0, 0); border-right-color: rgb(0, 0, 0); border-top-color: rgb(0, 0, 0); border-bottom-color: rgb(0, 0, 0); border-left-width: 1px; border-right-width: 1px; border-top-width: 1px; border-bottom-width: 1px; margin-left: 5px; margin-right: 5px; margin-top: 5px; margin-bottom: 5px; justify-content: space-between; flex-direction: column; align-items: stretch;">
+                    <ui:Label text="概览" display-tooltip-when-elided="true" name="Header" style="border-top-left-radius: 0; border-bottom-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-left-color: rgb(0, 0, 0); border-right-color: rgb(0, 0, 0); border-top-color: rgb(0, 0, 0); border-bottom-color: rgb(0, 0, 0); margin-left: 0; margin-top: 0; -unity-text-align: middle-left; margin-right: 0; margin-bottom: 0; background-color: rgb(0, 0, 0); -unity-font-style: bold; font-size: 13px; padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px;" />
+                    <ui:VisualElement name="Content" style="flex-direction: row; height: auto; align-items: center;">
+                        <ui:VisualElement name="Icon_big" style="background-image: url(&apos;project://database/Assets/OriginalAssets/logo.JPG?fileID=2800000&amp;guid=578bd4779c61a47469ada87446a469b5&amp;type=3#logo&apos;); width: 90px; height: 90px; margin-left: 5px; margin-right: 5px;" />
+                        <ui:VisualElement name="General" style="height: 100%; flex-grow: 1; justify-content: center;">
+                            <uie:IntegerField label="ID" name="ID" />
+                            <ui:TextField picking-mode="Ignore" label="Name" name="Name" text="名字" />
+                            <uie:EnumField label="Type" value="Center" name="Type" />
+                            <uie:ObjectField label="Icon" type="UnityEngine.Sprite, UnityEngine.CoreModule" name="Icon" />
+                            <uie:ObjectField label="World Sprite" type="UnityEngine.Sprite, UnityEngine.CoreModule" name="WorldSprite" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement name="Row2" style="border-top-left-radius: 0; border-bottom-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-left-color: rgb(0, 0, 0); border-right-color: rgb(0, 0, 0); border-top-color: rgb(0, 0, 0); border-bottom-color: rgb(0, 0, 0); border-left-width: 1px; border-right-width: 1px; border-top-width: 1px; border-bottom-width: 1px; margin-left: 5px; margin-right: 5px; margin-top: 5px; margin-bottom: 5px; justify-content: space-between; flex-direction: column; align-items: stretch;">
+                    <ui:Label text="描述信息" display-tooltip-when-elided="true" name="Header" style="border-top-left-radius: 0; border-bottom-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-left-color: rgb(0, 0, 0); border-right-color: rgb(0, 0, 0); border-top-color: rgb(0, 0, 0); border-bottom-color: rgb(0, 0, 0); margin-left: 0; margin-top: 0; -unity-text-align: middle-left; margin-right: 0; margin-bottom: 0; background-color: rgb(0, 0, 0); -unity-font-style: bold; font-size: 13px; padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px;" />
+                    <ui:VisualElement name="Content" style="flex-direction: row; height: auto; align-items: center; justify-content: space-between;">
+                        <ui:TextField picking-mode="Ignore" value="这里没有描述信息" text="这里没有描述信息" multiline="true" name="Description" style="flex-grow: 1; height: 80px; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0; -unity-font: url(&apos;project://database/Assets/OriginalAssets/M%20Studio/fonts/NotoSerifSC-Regular.otf?fileID=12800000&amp;guid=a9b33f4f336ea534c998a6b49cc2e450&amp;type=3#NotoSerifSC-Regular&apos;);" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement name="Row3" style="flex-direction: row; flex-grow: 1;">
+                    <ui:VisualElement name="Left" style="flex-grow: 1; width: 50%; margin-left: 5px; margin-right: 5px; margin-top: 5px; margin-bottom: 5px; border-left-width: 1px; border-right-width: 1px; border-top-width: 1px; border-bottom-width: 1px; border-left-color: rgb(0, 0, 0); border-right-color: rgb(0, 0, 0); border-top-color: rgb(0, 0, 0); border-bottom-color: rgb(0, 0, 0);">
+                        <ui:Label text="可用状态" display-tooltip-when-elided="true" name="Header" style="border-top-left-radius: 0; border-bottom-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-left-color: rgb(0, 0, 0); border-right-color: rgb(0, 0, 0); border-top-color: rgb(0, 0, 0); border-bottom-color: rgb(0, 0, 0); margin-left: 0; margin-top: 0; -unity-text-align: middle-left; margin-right: 0; margin-bottom: 0; background-color: rgb(0, 0, 0); -unity-font-style: bold; font-size: 13px; padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px;" />
+                        <uie:IntegerField label="Use Radius" value="42" name="UseRadius" />
+                        <ui:Toggle label="Can Pick" name="CanPick" />
+                        <ui:Toggle label="Can Drop" name="CanDrop" />
+                        <ui:Toggle label="Can Carry" name="CanCarry" />
+                    </ui:VisualElement>
+                    <ui:VisualElement name="Right" style="flex-grow: 1; width: 50%; margin-left: 5px; margin-right: 5px; margin-top: 5px; margin-bottom: 5px; border-left-width: 1px; border-right-width: 1px; border-top-width: 1px; border-bottom-width: 1px; border-left-color: rgb(0, 0, 0); border-right-color: rgb(0, 0, 0); border-top-color: rgb(0, 0, 0); border-bottom-color: rgb(0, 0, 0);">
+                        <ui:Label text="价值" display-tooltip-when-elided="true" name="Header" style="border-top-left-radius: 0; border-bottom-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-left-color: rgb(0, 0, 0); border-right-color: rgb(0, 0, 0); border-top-color: rgb(0, 0, 0); border-bottom-color: rgb(0, 0, 0); margin-left: 0; margin-top: 0; -unity-text-align: middle-left; margin-right: 0; margin-bottom: 0; background-color: rgb(0, 0, 0); -unity-font-style: bold; font-size: 13px; padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px;" />
+                        <uie:IntegerField label="Price" value="42" name="Price" />
+                        <ui:Slider picking-mode="Ignore" label="Sell Count" value="0.5" high-value="1" name="SellCount" show-input-field="true" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:ScrollView>
+    </ui:VisualElement>
+</ui:UXML>
