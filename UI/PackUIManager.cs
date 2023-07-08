@@ -24,7 +24,7 @@ namespace Item
                 SwitchBagShow();
         }
 
-        private void OnEnable()//TODO NOTE! onEnable 不是在所有物体都awake之后！
+        private void OnEnable()//NOTE onEnable 不是在所有物体都awake之后！每个物体自己awake然后onEnable
         {
             PackDataManager.UpdatePackData += OnUpdatePackData;
             SlotUI.ClickSlot += OnClickSlot;

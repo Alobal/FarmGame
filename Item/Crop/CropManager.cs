@@ -35,32 +35,52 @@ namespace Crop
             Save();
         }
 
-
+        //替换Crop的prefab，例如作物转变成大树
+        public void UpdateCropPrefab(CropObject source)
+        {
+            var data = source.GetSaveData();
+            RemoveCrop(source);
+            MakeCrop(data);
+        }
         public CropDetail GetCropDetail(int seed_id)
         {
             return source_data.crop_details.Find(x => x.seed_id == seed_id);
         }
 
-        /// <summary>
-        /// 加载crop detail，生成prefab
-        /// </summary>
-        /// <param name="seed_id"></param>
-        /// <param name="pos"></param>
-        /// <param name="init_day"></param>
-        public void MakeCrop(int seed_id,Vector2 pos,Vector2Int tile_pos,int init_day=0)
+        public void MakeCrop(CropObject.SaveData data)
+        {
+            MakeCrop(data.seed_id,
+                     new Vector2(data.pos_x, data.pos_y),
+                     new Vector2Int(data.tilepos_x, data.tilepos_y),
+                     data.current_day,
+                     data.prefab);
+        }
+
+        /// 实例化Crop，并设置好相关外部数据。
+        public void MakeCrop(int seed_id,Vector2 pos,Vector2Int tile_pos,int init_day=0,GameObject init_prefab=null)
         {
             CropDetail crop_detail=GetCropDetail(seed_id);
-            var crop_object = Instantiate(crop_detail.prefabs[0],transform).GetComponent<CropObject>();
+            if (init_prefab == null)
+                init_prefab = crop_detail.prefabs[0];
+            CropObject crop_object = Instantiate(init_prefab,transform).GetComponent<CropObject>();
+
             crop_object.transform.position = pos;
+            crop_object.prefab_now=init_prefab;
             crop_object.seed_id = seed_id;
             crop_object.tile_pos = tile_pos;
+            crop_object.current_day = init_day;
             crop_list.Add(crop_object);
         }
 
-        public void RemoveCrop(CropObject crop_object)
+        //移除Tile中的Crop，注意不会从crop list中移除，以便循环使用
+        public void RemoveCrop(CropObject crop_object,bool remove_in_list=true)
         {
             TilemapManager.instance.GetTileDetail(crop_object.tile_pos).seeded = false;
             Destroy(crop_object.gameObject);
+            if(remove_in_list)
+            {
+                crop_list.Remove(crop_object);
+            }
         }
 
         //读取记录时，清空场景上原有的crop，再从记录文件读取生成。
@@ -68,20 +88,18 @@ namespace Crop
         {
             if (File.Exists(serialize_path))
             {
-                int count = crop_list.Count;
-                for (int i = 0; i < count; i++)
-                {
-                    Destroy(crop_list[i].gameObject);
-                    crop_list.RemoveAt(i);
-                };
-
+                for (int i = 0; i < crop_list.Count; i++)
+                    RemoveCrop(crop_list[i],false);
+                crop_list.Clear();
+                //读取文件 场景中实例化数据
                 string json_data = File.ReadAllText(serialize_path);
                 var save_list = JsonUtility.FromJson<SaveData>(json_data).save_list;
                 for (int i = 0; i < save_list.Count; i++)
                     MakeCrop(save_list[i].seed_id,
                              new Vector2(save_list[i].pos_x,save_list[i].pos_y),
                              new Vector2Int(save_list[i].tilepos_x, save_list[i].tilepos_y),
-                             save_list[i].current_day);
+                             save_list[i].current_day,
+                             save_list[i].prefab);
             }
         }
 
@@ -102,7 +120,7 @@ namespace Crop
         private void ClearSaveData()
         {
             for (int i = 0; i < crop_list.Count; i++)
-                RemoveCrop(crop_list[i]);
+                RemoveCrop(crop_list[i], false);
             crop_list.Clear();
 
             if (File.Exists(serialize_path))

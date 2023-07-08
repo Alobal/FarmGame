@@ -21,9 +21,10 @@ namespace Item
         public int index;//slot index in the manager
         public ItemDetail item_detail;//注意被序列化后初始状态不为null
         public static event Action<SlotUI> ClickSlot;//物品栏选择事件
-
+        public KeyCode shortcut_key;
         //序列化属性需要添加 field:
-        [field: SerializeField] public SlotType slot_type { get; set; }
+        [field: SerializeField] 
+        public SlotType slot_type { get; set; }
         public bool is_empty { get { return PackDataManager.instance.IsSlotEmpty(index); } }
         public bool is_selected
         {
@@ -37,11 +38,34 @@ namespace Item
         private void Start()
         {
             is_selected = false;
+
+        }
+
+        private void Update()
+        {
+            if (shortcut_key!=KeyCode.None)
+                InputShortCut();
+        }
+
+        private void InputShortCut()
+        {
+            if(Input.GetKeyDown(shortcut_key))
+            {
+                is_selected = true;
+                ClickSlot.Invoke(this);
+            }
+        }
+        public void OnPointerClick(PointerEventData eventData)
+        {
+            is_selected = !is_selected;
+            ClickSlot.Invoke(this);
         }
 
         public void Init(int item_id, int amount, int index)
         {
             this.index = index;
+            if(index<9)
+                shortcut_key = KeyCode.Alpha1+index;
             var new_item_detail = PackDataManager.instance.GetItemDetail(item_id);
             if (new_item_detail == null || amount == 0)
                 MakeEmpty();
@@ -76,11 +100,7 @@ namespace Item
             is_selected = false;
         }
 
-        public void OnPointerClick(PointerEventData eventData)
-        {
-            is_selected = !is_selected;
-            ClickSlot.Invoke(this);
-        }
+
 
         public void OnBeginDrag(PointerEventData eventData)
         {

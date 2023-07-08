@@ -21,20 +21,19 @@ public class CropDetail
     [Header("可收割工具id")]
     public int[] harvest_toolids;
 
-    [Header("收获时所需收割次数")]
-    public int[] require_action_counts;
+    [Header("收获时所需工具收割次数")]
+    public int[] require_harvest_actions;//每一项与收割工具对应
 
     [Space]
     [Header("果实信息")]
     public int[] product_itemids, product_min_count,product_max_count;
     [SerializeField]
-    public Vector2 spawn_radius;
+    public float spawn_radius;//果实生成半径
 
     [Header("可选项")]
     public bool produce_on_player;
     public bool has_animation;
     public bool has_partical_effect;
-
     private int[] m_total_grow_days;
     public int[] total_grow_days 
     {
@@ -59,7 +58,15 @@ public class CropDetail
                 return i;
         return i;
     }
-
+    public int FindHarvestTool(int tool_id)
+    {
+        for(int i = 0; i < harvest_toolids.Length; i++)
+        {
+            if (harvest_toolids[i] == tool_id)
+                return i;
+        }
+        return -1;
+    }
     private void ComputeTotalDays()
     {
         m_total_grow_days = new int[grow_days.Length];

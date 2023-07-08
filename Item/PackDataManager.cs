@@ -12,16 +12,15 @@ namespace Item
     public class PackDataManager : Singleton<PackDataManager>
     {
         [Header("物品源数据")]
-        public ItemSourceDataSO source_data;// TODO 怎么确保引用给出的变量不变
+        public ItemSourceDataSO source_data;// FIX 怎么确保引用给出的变量不变
         [Header("包裹数据")]
-        public ItemPackSO bag_data;//TODO 如何控制UI格子数量和data数量同步
+        public ItemPackSO bag_data;//FIX 如何控制UI格子数量和data数量同步
 
         public static event Action<SlotType> UpdatePackData;
 
         private void Start()
         {
             UpdatePackData?.Invoke(SlotType.Player);
-            //TODO WHY 对资源标记dirty
             EditorUtility.SetDirty(bag_data);
         }
         public ItemDetail GetItemDetail(int id)

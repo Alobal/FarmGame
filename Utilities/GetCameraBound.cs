@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class GetCameraBound : MonoBehaviour
 {
-    //TODO: 切换场景不会重新调用
+
     private void OnEnable()
     {
         TransitionManager.AfterSceneLoad += GetConfinerBound;

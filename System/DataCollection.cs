@@ -10,7 +10,7 @@ using UnityEngine;
 /// </summary>
 [Serializable]
 public class ItemDetail
-{   //TODO FIX: 选择class 还是 struct
+{   
     public int id=0;
     public string item_name;
     public ItemType item_type=ItemType.None;
@@ -75,7 +75,7 @@ public enum PlayerPart
 
 public enum PlayerAction
 {
-    Default,Carry,Hoe,Break,Water
+    Default,Carry,Hoe,Break,Water,Chop
 }
 
 #endregion

@@ -29,7 +29,6 @@ namespace Item
             serialize_path = $"{serialize_dir}/{serialize_file}";
             Load();
         }
-
         private void OnEnable()
         {
             TransitionManager.BeforeSceneUnload += Save;
@@ -45,9 +44,6 @@ namespace Item
             if (File.Exists(serialize_path))
                 File.Delete(serialize_path);
         }
-
-
-
         /// <summary>
         /// 向玩家背包添加物品，地面销毁物品
         /// </summary>

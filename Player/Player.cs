@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Map;
+using Crop;
+
 public class Player : MonoBehaviour
 {
     #region 运动
@@ -18,7 +20,7 @@ public class Player : MonoBehaviour
     #endregion
 
     #region 人物状态
-    private Item.SlotUI use_slot;//note: 丢弃物体时需要slot信息，因此这里用的不是ItemDetail
+    private Item.SlotUI use_slot;//丢弃物体时需要slot信息，因此这里用的不是ItemDetail
     #endregion
 
     [SerializeField] private Transform hold_point;
@@ -79,32 +81,39 @@ public class Player : MonoBehaviour
         Vector3 click_pos = args.world_pos;
         GameObject target_go = args.target_go;
         //执行action
-        if (use_slot)//响应道具功能
+        if (use_slot)//正在使用道具 响应道具功能
         {
+            
             input_enable = false;
-            switch (use_slot.item_detail.item_type)
+            if (target_go == null)//点击地面
             {
-                case ItemType.Seed:
-                    SeedTile(click_pos);
-                    break;
-                case ItemType.Tool:
-                    if (tool_actions.ContainsKey(use_slot.item_detail.id))
-                    {
-                        tool_actions[use_slot.item_detail.id](click_pos);
-                    }
-                    break;
-                default://drop action
-                    if (target_go == null && use_slot.item_detail.can_drop)
-                        ThrowItem(click_pos);
-                    break;
+                switch (use_slot.item_detail.item_type)
+                {
+                    case ItemType.Seed:
+                        SeedTile(click_pos);
+                        break;
+                    case ItemType.Tool:
+                        if (tool_actions.ContainsKey(use_slot.item_detail.id))
+                            tool_actions[use_slot.item_detail.id](click_pos);
+                        break;
+                    default://drop action
+                        if (target_go == null && use_slot.item_detail.can_drop)
+                            ThrowItem(click_pos);
+                        break;
+                }
+            }
+            else//点击物体
+            {
+                if(target_go.GetComponent<CropObject>() is CropObject crop)//点中庄稼
+                {
+                    HarvsetCrop(crop, click_pos);
+                }
             }
 
             
             input_enable = true;
         }
     }
-
-
 
     //点击道具栏，修改当前使用道具
     private void OnClickSlot(Item.SlotUI slot)
@@ -170,6 +179,7 @@ public class Player : MonoBehaviour
         FaceDir(click_pos);
     }
 
+    //使角色朝向target_pos
     private void FaceDir(Vector3 target_pos)
     {
         float mouse_dir_x = target_pos.x - transform.position.x;
@@ -207,7 +217,7 @@ public class Player : MonoBehaviour
     #endregion
 
     #region Item Actions
-    //TODO: FIX 怎么管理action
+    //TODO 怎么管理action
     /// <summary>
     /// 朝目标位置扔出已选物体
     /// </summary>
@@ -219,14 +229,13 @@ public class Player : MonoBehaviour
         ItemObject world_item = WorldItemManager.instance.MakeItem(use_slot.item_detail.id, hold_point.position);
         PackDataManager.instance.RemoveItem(use_slot.index);
         FaceDir(target_pos);
-        StartCoroutine(world_item.Move(target_pos));
+        world_item.Move(target_pos);
         if(use_slot.is_empty)
         {
             use_slot = null;
             animator_override.SwitchAnimator(PlayerAction.Default);
         }
     }
-
     private void DigTile(Vector2 target_pos)
     {
         if (Vector2.Distance(target_pos, transform.position) > use_slot.item_detail.use_radius)
@@ -251,7 +260,6 @@ public class Player : MonoBehaviour
         UseItemAnimation(target_pos);
         TilemapManager.instance.SetTileWater(tile_detail);
     }
-
     private void SeedTile(Vector2 target_pos)
     {
         if (Vector2.Distance(target_pos, transform.position) > use_slot.item_detail.use_radius)
@@ -269,6 +277,13 @@ public class Player : MonoBehaviour
             use_slot = null;
             animator_override.SwitchAnimator(PlayerAction.Default);
         }
+    }
+    private void HarvsetCrop(CropObject crop,Vector2 target_pos)
+    {
+        if (!crop.CheckHarvestable(use_slot.item_detail.id))
+            return ;
+        UseItemAnimation(crop.transform.position);
+        crop.Harvest(use_slot.item_detail.id);
     }
     #endregion
 

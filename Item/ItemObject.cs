@@ -45,7 +45,7 @@ namespace Item
                 Debug.Assert(sprite_render.sprite != null, $"{item_id} Item world sprite missing...");
 
                 //自适应碰撞体尺寸
-                Vector2 coll_size = sprite_render.sprite.bounds.size.XY();
+                Vector2 coll_size = sprite_render.sprite.bounds.size;
                 collide.size = coll_size;
                 collide.offset = new Vector2(0, sprite_render.sprite.bounds.center.y);
             }
@@ -66,7 +66,13 @@ namespace Item
         /// <param name="target"></param>
         /// <param name="duration"></param>
         /// <returns></returns>
-        public IEnumerator Move(Vector2 target,float duration=0.3f)
+        /// 
+        public void Move(Vector2 target, float duration = 0.3f)
+        {
+            StartCoroutine(MoveHelp(target,duration));
+        }
+
+        private IEnumerator MoveHelp(Vector2 target,float duration=0.3f)
         {
             allow_pick = false;
             float speed_y = (target.y - transform.position.y)/duration;

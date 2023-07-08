@@ -37,13 +37,12 @@ public class ItemToolTipUI : MonoBehaviour
 
 
     /// <summary>
-    /// 避免Tip窗口超出屏幕
+    /// 自适应调整Tip窗口位置，避免Tip窗口超出屏幕
     /// </summary>
     /// <param name="pos"></param>
     /// <returns></returns>
     private Vector3 AdjustPosInScreen(Vector3 pos)
     {
-        //FIX: start的时候获取自适应的高度错误
         var rect=GetComponent<RectTransform>();
         float exceed_height = pos.y - rect.sizeDelta.y * rect.localScale.y;//向下超出 负数
         float exceed_weight = pos.x + rect.sizeDelta.x * rect.localScale.x - Screen.width;

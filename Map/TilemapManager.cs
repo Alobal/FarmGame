@@ -111,7 +111,7 @@ namespace Map
         {
             Vector3Int grid_pos = grid.WorldToCell(world_pos);
             TileDetail tile_detail;
-            tile_dict.TryGetValue(grid_pos.XY(), out tile_detail);
+            tile_dict.TryGetValue((Vector2Int)grid_pos, out tile_detail);
             return tile_detail;
         }
 

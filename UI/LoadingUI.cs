@@ -34,7 +34,6 @@ public class LoadingUI : MonoBehaviour
         StartCoroutine(ChangeCanvasAlpha( 0f, 0.5f));
     }
 
-    //TODO Point 解决竞争关系
     private IEnumerator ChangeCanvasAlpha(float target,float duration=1f)
     {   //等待锁
         while (is_fading) yield return new WaitForSeconds(0.1f);

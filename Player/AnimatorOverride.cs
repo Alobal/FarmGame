@@ -17,7 +17,6 @@ public class AnimatorOverride : MonoBehaviour
         var animators = GetComponentsInChildren<Animator>();
         foreach (var animator in animators)
         {
-            //TODO HOW 如何动态创建一个枚举变量
             origin_animators.Add(animator.name,animator);
         }
     }
@@ -48,6 +47,7 @@ public class AnimatorOverride : MonoBehaviour
                 ItemType.Commodity => PlayerAction.Carry,
                 ItemType.Tool when slot.item_detail.id==1011 => PlayerAction.Hoe,
                 ItemType.Tool when slot.item_detail.id == 1012 => PlayerAction.Water,
+                ItemType.Tool when slot.item_detail.id == 1001 => PlayerAction.Chop,
                 _ => PlayerAction.Default
             };
         //Carry动作额外处理 显示物品

@@ -4,10 +4,10 @@ using DG.Tweening;
 [RequireComponent(typeof(SpriteRenderer))]
 public class SpriteFadeAbility : MonoBehaviour
 {
-    private SpriteRenderer sprite_render;
+    private SpriteRenderer[] sprite_renders;
     private void Awake()
     {
-        sprite_render = GetComponent<SpriteRenderer>();
+        sprite_renders = GetComponentsInChildren<SpriteRenderer>();
     }
     /// <summary>
     /// 恢复color
@@ -15,7 +15,9 @@ public class SpriteFadeAbility : MonoBehaviour
     public void FadeIn()
     {
         Color target = new(1f, 1f, 1f, 1f);
-        sprite_render.DOColor(target, Settings.fade_duration);
+        foreach (SpriteRenderer renderer in sprite_renders)
+            if (renderer != null)
+                renderer.DOColor(target, Settings.fade_duration);
     }
 
     /// <summary>
@@ -24,6 +26,8 @@ public class SpriteFadeAbility : MonoBehaviour
     public void FadeOut()
     {
         Color target = new(1f, 1f, 1f, Settings.fade_alpha);
-        sprite_render.DOColor(target, Settings.fade_duration);
+        foreach (SpriteRenderer renderer in sprite_renders)
+            if (renderer != null)
+                renderer.DOColor(target, Settings.fade_duration);
     }
 }

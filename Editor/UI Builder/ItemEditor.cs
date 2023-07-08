@@ -76,7 +76,6 @@ public class ItemEditor : EditorWindow
             string path =AssetDatabase.GUIDToAssetPath(guids[0]);
             database=AssetDatabase.LoadAssetAtPath<ItemSourceDataSO>(path);
             item_list = database.item_details;
-            //TODO WHY 对资源标记dirty
             EditorUtility.SetDirty(database);
         }
     }
@@ -145,7 +144,7 @@ public class ItemEditor : EditorWindow
             active_item.item_type = (ItemType)evt.newValue);
 
         detail_view.Q<ObjectField>("Icon").value = active_item.icon;
-        //TODO WHY 在register之前的valuechange也可以响应
+        //FIX 为什么在register之前的valuechange也可以响应
         icon_big.style.backgroundImage = active_item.icon?  active_item.icon.texture : null;
         detail_view.Q<ObjectField>("Icon").RegisterValueChangedCallback(evt =>
         {
