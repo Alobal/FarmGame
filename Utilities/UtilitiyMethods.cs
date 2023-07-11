@@ -37,5 +37,15 @@ class MyUtility
             return true;
     }
 
+    //自适应调整box碰撞体尺寸
+    static public void AdaptiveBoxColliderToSprite(Sprite sprite,BoxCollider2D collide)
+    {
+        if(sprite==null || collide == null)
+            return;
+        Vector2 coll_size =sprite.bounds.size;
+        collide.size = coll_size;
+        collide.offset = new Vector2(0, sprite.bounds.center.y);
+    }
+
 
 }

@@ -17,11 +17,11 @@ public class ItemDetail
     public Sprite icon;
     public Sprite world_sprite;
     public string description;
-    public int use_radius;
-    public bool can_pick;
-    public bool can_drop;
-    public bool can_carry;
-    public int price;
+    public int use_radius=5;
+    public bool can_pick=true;
+    public bool can_drop=true;
+    public bool can_carry=true;
+    public int price=50;
     [Range(0,1)]
     public float sell_count=0.5f;
     public int sell_price
@@ -75,7 +75,7 @@ public enum PlayerPart
 
 public enum PlayerAction
 {
-    Default,Carry,Hoe,Break,Water,Chop
+    Default,Carry,Hoe,Break,Water,Chop,Reap
 }
 
 #endregion

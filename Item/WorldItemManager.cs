@@ -23,7 +23,7 @@ namespace Item
             for (int i = 0; i < transform.childCount; i++)
             {
                 if (transform.GetChild(i).GetComponent<ItemObject>() is ItemObject world_item)
-                    Add(world_item);
+                    AddToList(world_item);
             }
             serialize_dir = $"{Application.dataPath}/Temp/{gameObject.scene.name}";
             serialize_path = $"{serialize_dir}/{serialize_file}";
@@ -42,7 +42,10 @@ namespace Item
         private void OnApplicationQuit()
         {
             if (File.Exists(serialize_path))
+            {
                 File.Delete(serialize_path);
+                Debug.Log("清除文件成功");
+            }
         }
         /// <summary>
         /// 向玩家背包添加物品，地面销毁物品
@@ -64,7 +67,7 @@ namespace Item
         }
 
 
-        private void Add(ItemObject world_item)
+        private void AddToList(ItemObject world_item)
         {
             world_item.pack_index = item_list.Count;
             item_list.Add(world_item);
@@ -74,12 +77,12 @@ namespace Item
         {
             var world_item = Instantiate(item_prefab, transform).GetComponent<ItemObject>();
             world_item.transform.position = pos;
-            world_item.Init(item_id);
-            Add(world_item);
+            world_item.init_id=item_id;
+            AddToList(world_item);
             return world_item;
         }
 
-        //如果存在记录list，则会删除scene上原有的item，重新生成记录的item
+        //如果存在记录文件，则会删除scene上原有的item，重新生成记录的item
         private void Load()
         {
             if (File.Exists(serialize_path))
@@ -98,6 +101,7 @@ namespace Item
             }
         }
 
+        //保存功能交给场景转换器管理，而不是生命周期事件管理，因为希望每次重开游戏时刷新这些数据，但是场景转移时保留数据更改。
         private void Save()
         {
             if (!File.Exists(serialize_dir))

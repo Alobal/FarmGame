@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 
 /// <summary>
-/// 使得挂载的UI能够自由拖拽
+/// 使得挂载的UI能够自由拖拽，但是结束拖拽后复原
 /// </summary>
 public class DragUI : MonoBehaviour,IDragHandler,IBeginDragHandler,IEndDragHandler
 {

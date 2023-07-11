@@ -11,7 +11,7 @@ namespace Item
     /// </summary>
     public class ItemObject : MonoBehaviour
     {
-        [SerializeField] private int init_id;//用于编辑器给定初始化item
+        public int init_id;//用于初始化引导
         public int pack_index;//存储该Item在pack list中的索引
 
         public ItemDetail item_detail;//item详细结构信息
@@ -23,18 +23,18 @@ namespace Item
             get { return item_detail.id; }
         }
 
-        protected void Awake()
+        protected void Start()
         {
             sprite_render = GetComponent<SpriteRenderer>();
             collide = GetComponent<BoxCollider2D>();
             if (init_id != 0) 
-                Init(init_id);
+                InitInternal(init_id);
         }
         /// <summary>
         /// 初始化数据信息，调整碰撞体尺寸
         /// </summary>
         /// <param name="item_id"></param>
-        public void Init(int item_id)
+        private void InitInternal(int item_id)
         {
             if (item_id == 0)
                 return;
@@ -44,10 +44,7 @@ namespace Item
                 sprite_render.sprite = item_detail.world_sprite;
                 Debug.Assert(sprite_render.sprite != null, $"{item_id} Item world sprite missing...");
 
-                //自适应碰撞体尺寸
-                Vector2 coll_size = sprite_render.sprite.bounds.size;
-                collide.size = coll_size;
-                collide.offset = new Vector2(0, sprite_render.sprite.bounds.center.y);
+                MyUtility.AdaptiveBoxColliderToSprite(sprite_render.sprite, collide);
             }
         }
 

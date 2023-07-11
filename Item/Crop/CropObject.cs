@@ -21,7 +21,10 @@ namespace Crop
         public GameObject prefab_now;
         protected SpriteRenderer sprite_render;//item渲染图片
         protected BoxCollider2D collide;
-        protected Animator animator;
+        //粒子系统
+        [SerializeField] protected GameObject particle;
+        [SerializeField] protected Vector2 particle_localpos;
+        protected Vector2 particle_pos;
 
         public int grow_stage//当前处于的生长阶段
         {
@@ -32,13 +35,15 @@ namespace Crop
                 return crop_detail.ComputeGrowStage(current_day);
             }
         }
+        public bool is_wild { get { return tile_pos==Vector2.zero; } }//是野生则仅在开始游戏时加载
         public bool is_ripe { get { return grow_stage >= crop_detail.grow_days.Length; } }
 
-        private void Start()
+        protected virtual void Start()
         {
             sprite_render = GetComponent<SpriteRenderer>();
             collide = GetComponent<BoxCollider2D>();
-            animator=GetComponentInChildren<Animator>();
+            MyUtility.AdaptiveBoxColliderToSprite(sprite_render.sprite, collide);
+            particle_pos = (Vector2)transform.position + particle_localpos;
             if (seed_id != 0)//设置好状态后 自动内部初始化
                 InitInternal(seed_id);//NOTE 不能在Awake里调用Awake唤醒的单例
         }
@@ -68,6 +73,12 @@ namespace Crop
             CheckHarvestable(tool_id);
             int tool_index=crop_detail.FindHarvestTool(tool_id);
             harvest_action_count[tool_index] += 1;
+            //播放粒子
+            if (particle != null)
+            {
+                ParticleSystem particle_object = ObjectPoolManager.instance.Get(particle, particle_pos, 1.0f)
+                                                .GetComponent<ParticleSystem>();
+            }
             //收割次数满足 实现收获
             if (harvest_action_count[tool_index] >= crop_detail.require_harvest_actions[tool_index])
             {
@@ -87,6 +98,14 @@ namespace Crop
                 UpdateStatus(-3);
             }
         }
+        /// 根据crop detail和生长天数，初始化内部组件和状态。
+        private void InitInternal(int init_id)
+        {
+
+            crop_detail = CropManager.instance.GetCropDetail(init_id);
+            harvest_action_count = new int[crop_detail.harvest_toolids.Length];
+            UpdateStatus(0);
+        }
 
         private void OnDayEvent(int delta_day)
         {
@@ -99,7 +118,7 @@ namespace Crop
             current_day += delta_day;
             current_day = Math.Min(crop_detail.total_grow_days[^1], current_day);
             int current_stage = grow_stage;
-            
+            //记录prefab 以便后续比较替换
             GameObject prefab_old = prefab_now;
             prefab_now = crop_detail.prefabs[current_stage];
             sprite_render.sprite = crop_detail.sprites[current_stage];
@@ -110,15 +129,6 @@ namespace Crop
             {
                 Debug.Log("Hasvesting!!");
             }
-        }
-
-        /// 根据crop detail和生长天数，初始化内部组件和状态。
-        private void InitInternal(int init_id)
-        {
-
-            crop_detail = CropManager.instance.GetCropDetail(init_id);
-            harvest_action_count=new int[crop_detail.harvest_toolids.Length];
-            UpdateStatus(0);
         }
 
         public SaveData GetSaveData()

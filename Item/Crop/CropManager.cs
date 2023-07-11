@@ -11,29 +11,38 @@ namespace Crop
     public class CropManager : Singleton<CropManager>
     {
         public CropSourceDataSO source_data;
-        public List<CropObject> crop_list;//地图上现存的crop
-        private const string serialize_file = "CurrentCropList.json";
-        private string serialize_dir;
-        private string serialize_path;
+        public List<CropObject> crop_list;//在tile中种植的crop，需要在退出时保存所有状态，并在开始时重新加载
+        private const string crop_save_file = "CropList.json";
+        private string save_dir;
+        private string crop_save_path;
+
 
 
         private new void Awake()
         {
             base.Awake();
-            serialize_dir = $"{Application.dataPath}/Temp/{gameObject.scene.name}";
-            serialize_path = $"{serialize_dir}/{serialize_file}";
-            
+            save_dir = $"{Application.dataPath}/Temp/{gameObject.scene.name}";
+            crop_save_path = $"{save_dir}/{crop_save_file}";
+
+
         }
 
         private void OnEnable()
         {
-            Load(); 
+            Load();
+            TransitionManager.BeforeSceneUnload +=SaveOnTransition;
         }
 
         private void OnDisable()
         {
-            Save();
+            TransitionManager.BeforeSceneUnload -=SaveOnTransition;
         }
+
+        private void OnApplicationQuit()
+        {
+            Save(false);
+        }
+
 
         //替换Crop的prefab，例如作物转变成大树
         public void UpdateCropPrefab(CropObject source)
@@ -59,6 +68,10 @@ namespace Crop
         /// 实例化Crop，并设置好相关外部数据。
         public void MakeCrop(int seed_id,Vector2 pos,Vector2Int tile_pos,int init_day=0,GameObject init_prefab=null)
         {
+            //FIX：如何判断场景是否第一次加载。这里用坐标避免重复来取巧，避免重复加载场景时，重复加载野生crop
+            if (GetCropObject(pos) != null)
+                return;
+
             CropDetail crop_detail=GetCropDetail(seed_id);
             if (init_prefab == null)
                 init_prefab = crop_detail.prefabs[0];
@@ -72,10 +85,11 @@ namespace Crop
             crop_list.Add(crop_object);
         }
 
-        //移除Tile中的Crop，注意不会从crop list中移除，以便循环使用
+        //销毁CropObject，默认也会从维护列表crop list中移除
         public void RemoveCrop(CropObject crop_object,bool remove_in_list=true)
         {
-            TilemapManager.instance.GetTileDetail(crop_object.tile_pos).seeded = false;
+            if(TilemapManager.instance.GetTileDetail(crop_object.tile_pos) is TileDetail crop_tile)
+                crop_tile.seeded=false; 
             Destroy(crop_object.gameObject);
             if(remove_in_list)
             {
@@ -83,16 +97,21 @@ namespace Crop
             }
         }
 
-        //读取记录时，清空场景上原有的crop，再从记录文件读取生成。
+        private CropObject GetCropObject(Vector2 pos)
+        {
+            return crop_list.Find(x => (Vector2) x.transform.position == pos);
+        }
+
+        //读取记录时，清空Manager已管理的crop，再从记录文件读取生成。
         private void Load()
         {
-            if (File.Exists(serialize_path))
+            if (File.Exists(crop_save_path))
             {
                 for (int i = 0; i < crop_list.Count; i++)
                     RemoveCrop(crop_list[i],false);
                 crop_list.Clear();
                 //读取文件 场景中实例化数据
-                string json_data = File.ReadAllText(serialize_path);
+                string json_data = File.ReadAllText(crop_save_path);
                 var save_list = JsonUtility.FromJson<SaveData>(json_data).save_list;
                 for (int i = 0; i < save_list.Count; i++)
                     MakeCrop(save_list[i].seed_id,
@@ -103,18 +122,31 @@ namespace Crop
             }
         }
 
-        private void Save()
+        /// <summary>
+        /// 保存场景所有作物数据。
+        /// 针对于wild crop，仅在运行切换场景时会保存，结束游戏则会清空wild crop存储的数据，
+        /// 以便下次游戏开始时直接从场景预设读取野生Crop。
+        /// </summary>
+        /// <param name="save_wild">fasle时不保存野生Crop状态。在游戏退出时False，</param>
+        private void Save(bool save_wild=true)
         {
-            if (!File.Exists(serialize_dir))
-                Directory.CreateDirectory(serialize_dir);
+            if (!File.Exists(save_dir))
+                Directory.CreateDirectory(save_dir);
 
             SaveData save_data = new();
             save_data.save_list = new();
             for (int i = 0; i < crop_list.Count; i++)
+            {
+                if (crop_list[i].is_wild && save_wild == false)//野生作物特殊处理
+                    continue;
                 save_data.save_list.Add(crop_list[i].GetSaveData());
+            }
 
-            File.WriteAllText(serialize_path, JsonUtility.ToJson(save_data));
+            File.WriteAllText(crop_save_path, JsonUtility.ToJson(save_data));
         }
+
+        private void SaveOnTransition() { Save(); }
+
 
         [InspectorButton("清除Crop数据")]
         private void ClearSaveData()
@@ -123,13 +155,13 @@ namespace Crop
                 RemoveCrop(crop_list[i], false);
             crop_list.Clear();
 
-            if (File.Exists(serialize_path))
+            if (File.Exists(crop_save_path))
             {
-                File.Delete(serialize_path);
-                Debug.Log($"清除文件成功：{serialize_path}");
+                File.Delete(crop_save_path);
+                Debug.Log($"清除文件成功：{crop_save_path}");
             }
             else
-                Debug.Log($"清除文件失败：{serialize_path}");
+                Debug.Log($"清除文件失败：{crop_save_path}");
         }
 
         [Serializable]

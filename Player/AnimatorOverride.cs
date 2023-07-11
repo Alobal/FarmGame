@@ -40,7 +40,7 @@ public class AnimatorOverride : MonoBehaviour
         PlayerAction action;//获取物品对应action
         if (!slot.is_selected || slot.is_empty)//没有选中 或 选中空格子，则默认动作
             action = PlayerAction.Default;
-        else
+        else//WORKFLOW
             action = slot.item_detail.item_type switch
             {
                 ItemType.Seed => PlayerAction.Carry,
@@ -48,6 +48,7 @@ public class AnimatorOverride : MonoBehaviour
                 ItemType.Tool when slot.item_detail.id==1011 => PlayerAction.Hoe,
                 ItemType.Tool when slot.item_detail.id == 1012 => PlayerAction.Water,
                 ItemType.Tool when slot.item_detail.id == 1001 => PlayerAction.Chop,
+                ItemType.Tool when slot.item_detail.id == 1002 => PlayerAction.Reap,
                 _ => PlayerAction.Default
             };
         //Carry动作额外处理 显示物品
