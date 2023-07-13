@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-class MyUtility
+class UtilityMethods
 {
     static public (List<Tkey>, List<Tvalue>) DictToList<Tkey, Tvalue>(Dictionary<Tkey, Tvalue> dict)
     {
@@ -47,5 +47,8 @@ class MyUtility
         collide.offset = new Vector2(0, sprite.bounds.center.y);
     }
 
-
+    public static int ManhattanDist(Vector2Int a, Vector2Int b)
+    {
+        return Mathf.Abs(a.x - b.x) + Mathf.Abs(a.y - b.y);
+    }
 }

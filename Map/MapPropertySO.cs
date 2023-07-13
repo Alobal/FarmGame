@@ -16,6 +16,8 @@ namespace Map
     {
         [SceneName]
         public string scene_name;
+        public Vector2Int grid_shape;//网格地图的宽高
+        public Vector2Int bottom_left;//网格地图左下角的点，用于校正原点
         [SerializeField] private List<Vector2Int> cell_postions;//dict无法序列化，转为双List进行存储，运行加载后重建dict
         [SerializeField] private List<TileDetail> tile_details;
 

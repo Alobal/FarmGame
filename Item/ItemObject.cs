@@ -44,7 +44,7 @@ namespace Item
                 sprite_render.sprite = item_detail.world_sprite;
                 Debug.Assert(sprite_render.sprite != null, $"{item_id} Item world sprite missing...");
 
-                MyUtility.AdaptiveBoxColliderToSprite(sprite_render.sprite, collide);
+                UtilityMethods.AdaptiveBoxColliderToSprite(sprite_render.sprite, collide);
             }
         }
 

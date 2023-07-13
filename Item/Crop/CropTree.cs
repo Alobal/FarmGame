@@ -29,7 +29,7 @@ namespace Crop
 
             if (animator!=null)
             {
-                bool left_or_right=MyUtility.RandomBool();
+                bool left_or_right=UtilityMethods.RandomBool();
                 if (left_or_right)
                     animator.SetTrigger("RotateRight");
                 else
@@ -46,14 +46,14 @@ namespace Crop
             {
                 if (animator != null)
                 {
-                    bool left_or_right = MyUtility.RandomBool();
+                    bool left_or_right = UtilityMethods.RandomBool();
                     if (left_or_right)
                         animator.SetTrigger("FallRight");
                     else
                         animator.SetTrigger("FallLeft");
                 }
 
-                StartCoroutine(MyUtility.WaitDoCR(() =>
+                StartCoroutine(UtilityMethods.WaitDoCR(() =>
                 {
                     for (int i = 0; i < crop_detail.product_itemids.Length; i++)
                     {

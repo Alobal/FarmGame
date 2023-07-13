@@ -12,7 +12,6 @@ namespace Map
 
     /// <summary>
     /// 所有TilemapDetail的管理器，存储于SO文件。Enbale加载，Disable更新保存。
-
     /// </summary>
     [ExecuteInEditMode]
     public class TilemapManager : Singleton<TilemapManager>
@@ -68,6 +67,7 @@ namespace Map
             }
         }
 
+        //保存TileDetail数据，注意不会保存TileBase的贴图修改，这与TileDetail无关。
         private void Save()
         {
             map_property_so.DictToList(tile_dict);
@@ -122,8 +122,13 @@ namespace Map
             return tile_detail;
         }
 
+        public (Vector2Int,Vector2Int) GetGridDimensions()
+        {
+            return (map_property_so.grid_shape, map_property_so.bottom_left);
+        }
+
         /// <summary>
-        /// 压缩tilemap后，从左下角到右上角更新每个tile的property。每次覆盖更新。
+        /// 检查所有falg_tilemap，从左下角到右上角更新每个tile的property。每次覆盖更新。
         /// </summary>
         [InspectorButton("初始化Tilemap Flags")]
         [Conditional("UNITY_EDITOR")]

@@ -42,7 +42,6 @@ namespace Crop
         {
             sprite_render = GetComponent<SpriteRenderer>();
             collide = GetComponent<BoxCollider2D>();
-            MyUtility.AdaptiveBoxColliderToSprite(sprite_render.sprite, collide);
             particle_pos = (Vector2)transform.position + particle_localpos;
             if (seed_id != 0)//设置好状态后 自动内部初始化
                 InitInternal(seed_id);//NOTE 不能在Awake里调用Awake唤醒的单例
@@ -118,16 +117,22 @@ namespace Crop
             current_day += delta_day;
             current_day = Math.Min(crop_detail.total_grow_days[^1], current_day);
             int current_stage = grow_stage;
-            //记录prefab 以便后续比较替换
+            //更新prefab
             GameObject prefab_old = prefab_now;
             prefab_now = crop_detail.prefabs[current_stage];
-            sprite_render.sprite = crop_detail.sprites[current_stage];
-
             if (prefab_old != prefab_now)
                 CropManager.instance.UpdateCropPrefab(this);
+            //更新sprite
+            sprite_render.sprite = crop_detail.sprites[current_stage];
+            UtilityMethods.AdaptiveBoxColliderToSprite(sprite_render.sprite, collide);
+            //更新碰撞体
             if (is_ripe)//成熟阶段 即最后一个阶段
             {
-                Debug.Log("Hasvesting!!");
+                collide.enabled = true;
+            }
+            else//生长阶段
+            {
+                collide.enabled = false;
             }
         }
 
