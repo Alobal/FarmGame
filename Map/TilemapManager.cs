@@ -19,11 +19,11 @@ namespace Map
 
         public MapPropertySO map_property_so;
         public Dictionary<Vector2Int, TileDetail> tile_dict;
+        public Grid grid;//用来计算grid坐标
         [SerializeField] private RuleTile dig_ruletile;
         [SerializeField] private RuleTile water_ruletile;
         [SerializeField] private Tilemap dig_tilemap;
         [SerializeField] private Tilemap water_tilemap;
-        [SerializeField] private Grid grid;//用来计算grid坐标
         [SerializeField] private List<FlagTilemap> flag_tilemaps;
 
         private new void Awake()

@@ -10,12 +10,14 @@ public class SceneNameDrawer : PropertyDrawer
     GUIContent[] scene_names;
     readonly string[] scene_path_splite = { "/", ".unity" };
     public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
-    {
+    {   
+        //FIX List中同样字段会错误同步更改
         if (EditorBuildSettings.scenes.Length == 0) return;
         if(scene_index == -1)//没有预设值则进行初始化
         {
             Init(property);
         }
+        //new_index为用户点击选择时返回的index
         int new_index = EditorGUI.Popup(position, label, scene_index, scene_names);
         if (new_index!=scene_index)
         {

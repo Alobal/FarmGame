@@ -85,6 +85,14 @@ public enum Season
     Spring,Summer,Autumn,Winter
 }
 
+[Serializable]
+public class NPCPosition
+{
+    public Transform npc;
+    public string start_scene;
+    public Vector2 pos;
+}
+
 
 namespace Map
 {

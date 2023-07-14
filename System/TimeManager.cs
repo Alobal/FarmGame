@@ -22,6 +22,8 @@ public class TimeManager : Singleton<TimeManager>
     public int hour_current { get => hour_total % Settings.hour_hold; }
     public int day_current { get => day_total % Settings.day_hold; }
     public int month_current { get => month_total % Settings.month_hold; }
+
+    public int second_today { get => second_total-day_total*Settings.hour_hold*Settings.day_hold*Settings.minute_hold; }
     public Season season
     {
         get => (Season) (Settings.init_season + (month_total / Settings.season_hold)%Settings.season_hold);
@@ -112,6 +114,12 @@ public class TimeManager : Singleton<TimeManager>
                 }
             }
         }
+    }
+
+    public static int ComputeSeconds(int hour,int minute)
+    {
+        return hour * Settings.hour_hold * Settings.minute_hold +
+                minute * Settings.minute_hold;
     }
 
 }

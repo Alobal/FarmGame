@@ -6,7 +6,7 @@ using Map;
 
 namespace AStar
 {
-    public class AStar : MonoBehaviour
+    public class AStar : Singleton<AStar>
     {
         private Grid grid;
         private List<Node> open_nodes;
@@ -28,6 +28,12 @@ namespace AStar
             close_nodes = new HashSet<Node>();
         }
 
+        /// <summary>
+        /// 根据网格坐标构建网格路径
+        /// </summary>
+        /// <param name="start_pos">起始网格坐标</param>
+        /// <param name="end_pos">目标网格坐标</param>
+        /// <returns></returns>
         public Stack<Node> BuildPath(Vector2Int start_pos, Vector2Int end_pos)
         {
             path_found = false;
@@ -74,8 +80,12 @@ namespace AStar
                 }
                 return path_stack;
             }
+            else
+            {
+                Debug.Log($"目标{end_pos}不可达");
+                return null;
+            }
             
-            return null;
 
         }
 
