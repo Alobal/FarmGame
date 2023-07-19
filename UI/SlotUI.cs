@@ -61,6 +61,12 @@ namespace Item
             ClickSlot.Invoke(this);
         }
 
+        /// <summary>
+        /// 为slot填充index和item detail数据
+        /// </summary>
+        /// <param name="item_id"></param>
+        /// <param name="amount"></param>
+        /// <param name="index"></param>
         public void Init(int item_id, int amount, int index)
         {
             this.index = index;

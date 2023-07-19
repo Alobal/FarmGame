@@ -14,16 +14,19 @@ public class NPCMovement : MonoBehaviour
     public float speed = 5;
     public bool is_moving;
     public ScheduleDataSO schedule_data;
-    private Stack<AStar.Node> path_nodes;
+    private Stack<AStar.Node> path_nodes;//每次为当前schedule生成的寻路节点
     private int schedule_index = 0;
+    public bool pause_moving=false;//暂停移动，用于对话之类的
+
+    //schedule实时属性
     private ScheduleDetail current_schedule 
     { get => schedule_index < schedule_data.count ? schedule_data[schedule_index] : null; }
     private Vector2Int current_gridpos 
     { get => (Vector2Int)grid.WorldToCell(transform.position); }
-    private AnimationClip stop_animation 
+    private AnimationClip stop_animation//当前schedule到达后执行的动画
     { get => current_schedule != null ? current_schedule.clip_at_target : null; }
 
-    //Components
+    //组件
     private Rigidbody2D rb;
     private SpriteRenderer sprite_renderer;
     private BoxCollider2D collide;
@@ -62,7 +65,7 @@ public class NPCMovement : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if (current_schedule != null)//存在可行的寻路目标
+        if (pause_moving==false && current_schedule != null)//存在可行的寻路目标
         {
             //还没有为current_schedule构建path，则尝试构建新的path
             if (path_nodes.Count == 0 && current_gridpos != current_schedule.target_gridpos)

@@ -13,7 +13,6 @@ public class ScheduleDetail : IComparable<ScheduleDetail>
     public string target_scene;
     public Vector2Int target_gridpos;
     public AnimationClip clip_at_target;
-    public bool interactable;
 
     public int CompareTo(ScheduleDetail other)
     {

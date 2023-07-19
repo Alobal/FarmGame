@@ -8,7 +8,7 @@ using UnityEngine.EventSystems;
 /// </summary>
 public class DragUI : MonoBehaviour,IDragHandler,IBeginDragHandler,IEndDragHandler
 {
-    public GameObject drag_target;
+    public GameObject drag_target;//用于控制拖拽子物体
     public bool end_reset=false;
     private Vector2 pos_origin;
     private void Awake()

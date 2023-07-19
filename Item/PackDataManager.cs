@@ -13,15 +13,15 @@ namespace Item
     {
         [Header("物品源数据")]
         public ItemSourceDataSO source_data;// FIX 怎么确保引用给出的变量不变
-        [Header("包裹数据")]
-        public ItemPackSO bag_data;//FIX 如何控制UI格子数量和data数量同步
+        [Header("玩家包裹数据")]
+        public ItemPackSO player_bag;//FIX 如何控制UI格子数量和data数量同步
 
-        public static event Action<SlotType> UpdatePackData;
+        public static event Action<SlotType, List<SlotItem>> UpdatePackData;
 
         private void Start()
         {
-            UpdatePackData?.Invoke(SlotType.Player);
-            EditorUtility.SetDirty(bag_data);
+            UpdatePackData?.Invoke(SlotType.Player,player_bag.slot_datas);
+            EditorUtility.SetDirty(player_bag);
         }
         public ItemDetail GetItemDetail(int id)
         {
@@ -30,16 +30,16 @@ namespace Item
 
         public void AddItemToPlayer(int item_id)
         {
-            bag_data.PushItem(item_id);
+            player_bag.PushItem(item_id);
             //更新UI
-            UpdatePackData?.Invoke(SlotType.Player);
+            UpdatePackData?.Invoke(SlotType.Player, player_bag.slot_datas);
         }
 
         public bool RemoveItem(int slot_index,int amount=1)
         {
-            if (bag_data.RemoveItem(slot_index, amount))
+            if (player_bag.RemoveItem(slot_index, amount))
             {
-                UpdatePackData.Invoke(SlotType.Player);
+                UpdatePackData.Invoke(SlotType.Player, player_bag.slot_datas);
                 return true;
             }
             else
@@ -53,7 +53,7 @@ namespace Item
         /// <returns></returns>
         public bool IsSlotEmpty(int slot_i)
         {
-            return bag_data.slot_datas[slot_i].item_amount <= 0;
+            return player_bag.slot_datas[slot_i].item_amount <= 0;
         }
 
         public void SwapSlotData(SlotUI source, SlotUI target)
@@ -61,12 +61,12 @@ namespace Item
 
             if(source.slot_type == SlotType.Player && target.slot_type == SlotType.Player)
             {
-                var temp = bag_data.slot_datas[source.index];
-                bag_data.slot_datas[source.index] = bag_data.slot_datas[target.index];
-                bag_data.slot_datas[target.index] = temp;
+                var temp = player_bag.slot_datas[source.index];
+                player_bag.slot_datas[source.index] = player_bag.slot_datas[target.index];
+                player_bag.slot_datas[target.index] = temp;
             }
 
-            UpdatePackData?.Invoke(SlotType.Player);
+            UpdatePackData?.Invoke(SlotType.Player, player_bag.slot_datas);
 
         }
     }
