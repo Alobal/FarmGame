@@ -41,7 +41,7 @@ public class CursorManager : Singleton<CursorManager>
             Ray ray=Camera.main.ScreenPointToRay(Input.mousePosition);
             RaycastHit2D hit = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(Input.mousePosition), Vector2.zero);
             GameObject target_go=hit? hit.transform.gameObject:null;
-            Debug.Log(target_go);
+            //Debug.Log(target_go);
             ClickMouseLeft.Invoke(new (world_pos,target_go));
         }
     }

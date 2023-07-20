@@ -22,10 +22,11 @@ namespace Item
         public ItemDetail item_detail;//注意被序列化后初始状态不为null
         public static event Action<SlotUI> ClickSlot;//物品栏选择事件
         public KeyCode shortcut_key;
+        static public bool use_shortcut = true;//是否对Slot启用快捷键
         //序列化属性需要添加 field:
         [field: SerializeField] 
         public SlotType slot_type { get; set; }
-        public bool is_empty { get { return PackDataManager.instance.IsSlotEmpty(index); } }
+        public bool is_empty { get { return PackDataManager.instance.IsSlotEmpty(slot_type,index); } }
         public bool is_selected
         {
             get { return highlight.activeInHierarchy; }
@@ -43,7 +44,7 @@ namespace Item
 
         private void Update()
         {
-            if (shortcut_key!=KeyCode.None)
+            if (use_shortcut && shortcut_key!=KeyCode.None)
                 InputShortCut();
         }
 
@@ -106,8 +107,7 @@ namespace Item
             is_selected = false;
         }
 
-
-
+        //拖动控制，产生拖动图标
         public void OnBeginDrag(PointerEventData eventData)
         {
             if (is_empty) return;
@@ -116,28 +116,38 @@ namespace Item
             PackUIManager.instance.drag_image.transform.position = transform.position;
         }
 
+        //随鼠标移动拖动图标
         public void OnDrag(PointerEventData eventData)
         {
             if (is_empty) return;
             PackUIManager.instance.drag_image.transform.position += (Vector3)eventData.delta;
         }
-
+        //结束拖动检测，如果从玩家拖到地上，则丢弃物品。
         public void OnEndDrag(PointerEventData eventData)
         {
-            if (is_empty) return;
+            if (is_empty) 
+                return;
             PackUIManager.instance.drag_image.enabled = false;
             PackUIManager.instance.drag_image.sprite = null;
-            //击中UI
+
             if (eventData.pointerCurrentRaycast.gameObject is GameObject go)
             {
                 if (go.GetComponent<SlotUI>() is SlotUI target_slot)
                 {
-                    PackDataManager.instance.SwapSlotData(this, target_slot);
+                    //如果不是商店 则直接交换Slot数据
+                    if(target_slot.slot_type!=SlotType.Shop && this.slot_type != SlotType.Shop)
+                        PackDataManager.instance.SwapSlotData(this, target_slot);
+                    //如果是商店，则发生交易流程，打开TradeUI
+                    else
+                    {
+                        SlotUI.use_shortcut = false;
+                        PackUIManager.instance.trade_ui.Init(this,target_slot);
+                    }
                 }
             }
             else//没有击中UI，即鼠标落在地图上
             {
-                if (item_detail.can_drop)
+                if (item_detail.can_drop && slot_type==SlotType.Player)
                 {
                     int keep_id = item_detail.id;//提前备份id，以防最后一个物品扔掉后格子清空
                     PackDataManager.instance.RemoveItem(index, 1);

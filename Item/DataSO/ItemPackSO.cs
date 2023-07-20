@@ -7,6 +7,8 @@ using UnityEngine;
 [CreateAssetMenu(fileName ="ItemPack",menuName ="Item/ItemPackSO")]
 public class ItemPackSO : ScriptableObject
 {
+    public int money = 0;
+    public bool can_expend;//是否允许在没有空位的时候扩展格子数量
     public List<SlotItem> slot_datas;
 
     /// <summary>
@@ -37,7 +39,14 @@ public class ItemPackSO : ScriptableObject
     public bool PushItem(int item_id,int amount=1)
     {
         int push_index = FindItem(item_id);
-        if (push_index == -1) push_index = FindEmpty();
+        
+        if (push_index == -1) //没有旧的同类物品，则寻找新的空位
+            push_index = FindEmpty();
+        if (push_index == -1 && can_expend)//没有空位，检查是否允许扩展
+        {
+            slot_datas.Add(new SlotItem());
+            push_index=slot_datas.Count-1;
+        }
         return PushItemAtIndex(item_id, push_index,amount);
     }
 
@@ -60,7 +69,7 @@ public class ItemPackSO : ScriptableObject
     }
 
     /// <summary>
-    /// 找到一个空位置，返回index
+    /// 找到一个空位置，返回index，没找到则返回-1
     /// </summary>
     /// <returns></returns>
     public int FindEmpty()
@@ -73,7 +82,7 @@ public class ItemPackSO : ScriptableObject
         return -1;
     }
     /// <summary>
-    /// 找到id物体的位置，返回index
+    /// 找到id物体的位置，返回index。没找到则返回-1
     /// </summary>
     /// <param name="id"></param>
     /// <returns></returns>

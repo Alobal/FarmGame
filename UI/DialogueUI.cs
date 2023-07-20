@@ -59,8 +59,7 @@ public class DialogueUI : Singleton<DialogueUI>
             yield return content.DOText(dialogue.dialogue_text, 1f).WaitForCompletion();
             //结束一条对话
             dialogue.is_done=true;
-            if(dialogue.has_to_pause)
-                continue_box.SetActive(true) ;
+            continue_box.SetActive(true) ;
         }
         else//无有效对话
         {

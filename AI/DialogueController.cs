@@ -15,8 +15,8 @@ public class DialogueController : MonoBehaviour
     //对话数据
     public UnityEvent FinishEvent;
     public List<DialoguePiece> dialogue_list = new();
+    public bool is_talking;
     private int diag_index;
-    private bool is_talking;
     private bool can_talk { get { return movement.is_moving == false && !is_talking; } }
     private DialoguePiece current_diag{get { return dialogue_list[diag_index]; }}
     // Start is called before the first frame update
@@ -47,10 +47,12 @@ public class DialogueController : MonoBehaviour
         }
     }
 
+    //取对话的一条数据进行处理
     private IEnumerator DialogueRoutine()
     {
         if(diag_index < dialogue_list.Count)//剩余对话
         {
+            movement.pause_moving = true;
             is_talking = true;
             //控制UI开始对话
             DialogueUI.instance.Invoke(current_diag);
@@ -58,11 +60,15 @@ public class DialogueController : MonoBehaviour
             yield return new WaitUntil(() => current_diag.is_done);
             diag_index++;
             is_talking=false;
+            movement.pause_moving = false;
+
         }
-        else
+        else//到达对话末尾
         {
             DialogueUI.instance.Invoke(null);
             diag_index = 0;
+            button_tip.SetActive(false);
+            FinishEvent?.Invoke();
         }
     }
 }

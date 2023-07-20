@@ -18,7 +18,7 @@ public class NPCMovement : MonoBehaviour
     private int schedule_index = 0;
     public bool pause_moving=false;//暂停移动，用于对话之类的
 
-    //schedule实时属性
+    //实时schedule属性
     private ScheduleDetail current_schedule 
     { get => schedule_index < schedule_data.count ? schedule_data[schedule_index] : null; }
     private Vector2Int current_gridpos 

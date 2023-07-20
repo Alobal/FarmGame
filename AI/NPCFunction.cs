@@ -6,27 +6,39 @@ using UnityEngine;
 public class NPCFunction : MonoBehaviour
 {
     public ItemPackSO pack_data;
-    private bool bag_is_open;
+    private DialogueController dia_controller;
+    static private bool bag_is_open;
     // Start is called before the first frame update
     void Start()
     {
-        OpenBag();
-        if(bag_is_open && Input.GetKeyDown(KeyCode.Escape))
-        {
-
-        }
+        if(dia_controller == null) 
+            dia_controller = GetComponent<DialogueController>();
     }
 
     // Update is called once per frame
     void Update()
     {
-        
+        if (bag_is_open && Input.GetKeyDown(KeyCode.Escape))
+        {
+            CloseBag();
+        }
+    }
+
+    public void CloseBag()
+    {
+        bag_is_open = false;
+        dia_controller.is_talking = false;
+        PackDataManager.instance.other_bag = null;
+        PackUIManager.instance.CloseOtherBag();
+
     }
 
     public void OpenBag()
     {
         bag_is_open = true;
-        PackUIManager.instance.OpenOtherBag(pack_data.slot_datas);
+        dia_controller.is_talking = true;
+        PackDataManager.instance.other_bag = pack_data;
+        PackUIManager.instance.OpenOtherBag(pack_data);
 
     }
 }

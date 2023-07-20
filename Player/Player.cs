@@ -28,7 +28,7 @@ public class Player : MonoBehaviour
 
     private Rigidbody2D rb;
     [SerializeField]
-    private Animator[] animators;
+    private Animator[] animators;//身体各个部位的动画控制器
     private AnimatorOverride animator_override;
 
 
@@ -75,7 +75,10 @@ public class Player : MonoBehaviour
         CursorManager.ClickMouseLeft -= OnMouseLeft;
 
     }
-
+    /// <summary>
+    /// 鼠标点击事件，用于响应交互
+    /// </summary>
+    /// <param name="args"></param>
     private void OnMouseLeft(ClickMouseLeftEventArgs args)
     {
         Vector3 click_pos = args.world_pos;
