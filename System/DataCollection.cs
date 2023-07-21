@@ -48,7 +48,7 @@ public enum ItemType
 {
     None,
     Seed, Commodity, Furniture,
-    Tool,
+    Tool,BluePrint,
     ReapableScenery,
 }
 

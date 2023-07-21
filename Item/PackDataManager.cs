@@ -12,7 +12,8 @@ namespace Item
     public class PackDataManager : Singleton<PackDataManager>
     {
         [Header("物品源数据")]
-        public ItemSourceDataSO source_data;// FIX 怎么确保引用给出的变量不变
+        public ItemSourceDataSO item_data;// FIX 怎么确保引用给出的变量不变
+        public BluePrintDataSO blueprint_data;
         [Header("玩家包裹数据")]
         public ItemPackSO player_bag;//FIX 如何控制UI格子数量和data数量同步
         [HideInInspector]public ItemPackSO other_bag;//客体背包数据，每次打开商店或仓库时填充引用，关闭时清除引用
@@ -26,7 +27,12 @@ namespace Item
         }
         public ItemDetail GetItemDetail(int id)
         {
-            return source_data.item_details.Find(x => x.id == id);
+            return item_data.item_details.Find(x => x.id == id);
+        }
+
+        public BluePrintDetail GetBluePrintDetail(int id)
+        {
+            return blueprint_data.GetBluePrint(id);
         }
 
         public void AddItemToPlayer(int item_id)

@@ -12,6 +12,7 @@ public class ItemToolTipUI : MonoBehaviour
     [SerializeField] private TextMeshProUGUI item_type;
     [SerializeField] private TextMeshProUGUI item_desc;
     [SerializeField] private TextMeshProUGUI item_price;
+    [SerializeField] private ResourcePanelUI resource_panel;
 
     /// <summary>
     /// 获取Slot物品信息进行Tip显示
@@ -27,13 +28,24 @@ public class ItemToolTipUI : MonoBehaviour
         item_name.text = item_detail.item_name;
         item_type.text = item_detail.item_type.ToText();
         item_desc.text = item_detail.description;
-        
-        int price = slot_type == SlotType.Player ?item_detail.sell_price : item_detail.price;
+
+        int price = slot_type == SlotType.Player ? item_detail.sell_price : item_detail.price;
         item_price.text = price != 0 ?price.ToString() : "----";
+
+        if(item_detail.item_type==ItemType.BluePrint)//蓝图物品需要额外显示资源信息
+        {
+            if(PackDataManager.instance.GetBluePrintDetail(item_id) is BluePrintDetail blueprint_detail )
+                resource_panel.Open(blueprint_detail);
+        }
+        else
+        {
+            resource_panel.Close();
+        }
 
         transform.position = AdjustPosInScreen(pos);
 
     }
+
 
 
     /// <summary>

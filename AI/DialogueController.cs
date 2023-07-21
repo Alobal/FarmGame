@@ -16,8 +16,9 @@ public class DialogueController : MonoBehaviour
     public UnityEvent FinishEvent;
     public List<DialoguePiece> dialogue_list = new();
     public bool is_talking;
+    private bool player_near=false;
     private int diag_index;
-    private bool can_talk { get { return movement.is_moving == false && !is_talking; } }
+    private bool can_talk { get { return movement.is_moving == false && !is_talking && player_near; } }
     private DialoguePiece current_diag{get { return dialogue_list[diag_index]; }}
     // Start is called before the first frame update
     void Start()
@@ -28,13 +29,14 @@ public class DialogueController : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if(can_talk)
+        player_near = true;
+        if (can_talk)
             button_tip.SetActive(true);
     }
 
     private void OnTriggerExit2D(Collider2D collision)  
     {
-
+        player_near = false;
         button_tip.SetActive(false);
     }
 

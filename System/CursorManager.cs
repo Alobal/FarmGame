@@ -3,12 +3,14 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class CursorManager : Singleton<CursorManager>
 {
-    [SerializeField]
+
     public Texture2D normal, tool, commodity,seed;
     public Vector2 world_pos;
+    [SerializeField] private Image addition_image;
     public static event Action<ClickMouseLeftEventArgs> ClickMouseLeft; //击中坐标以及击中物体，物体可为null
     // Start is called before the first frame update
     private void OnEnable()
@@ -31,6 +33,14 @@ public class CursorManager : Singleton<CursorManager>
     void Update()
     {
         MouseInput();
+        if(addition_image.sprite != null) 
+            ImageFollow();
+    }
+
+    private void ImageFollow()
+    {
+        world_pos = Camera.main.ScreenToWorldPoint(Input.mousePosition);//2D游戏 像素坐标变换到3D坐标
+        addition_image.transform.position=Input.mousePosition;
     }
 
     private void MouseInput()
@@ -57,14 +67,27 @@ public class CursorManager : Singleton<CursorManager>
             {
                 ItemType.Seed => seed,
                 ItemType.Commodity => commodity,
-                ItemType.Furniture => commodity,
+                ItemType.BluePrint => GetBluePrintImage(slot.item_detail.id),
                 ItemType.Tool => tool,
                 _ => normal
             };
+        if (cursor_texture!=null)
+        {
+            addition_image.gameObject.SetActive(false);
+            addition_image.sprite = null;
+            Cursor.visible = true;
+        }
         SetCursor(cursor_texture);
     }
 
- 
+    private Texture2D GetBluePrintImage(int blueprint_id)
+    {
+        int product_id= PackDataManager.instance.GetBluePrintDetail(blueprint_id).product_id;
+        addition_image.gameObject.SetActive(true);
+        addition_image.sprite= PackDataManager.instance.GetItemDetail(product_id).world_sprite;
+        Cursor.visible = false;
+        return null;
+    }
 
     public void SetCursor(Texture2D texture)
     {
