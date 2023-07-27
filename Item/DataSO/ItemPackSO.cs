@@ -17,7 +17,7 @@ public class ItemPackSO : ScriptableObject
     /// <param name="index"></param>
     /// <param name="amount"></param>
     /// <returns></returns>
-    public bool RemoveItem(int index,int amount)
+    public bool RemoveItemAt(int index,int amount)
     {
         if (slot_datas[index].item_amount <= 0)
             return false;
@@ -86,7 +86,7 @@ public class ItemPackSO : ScriptableObject
     /// </summary>
     /// <param name="id"></param>
     /// <returns></returns>
-    private int FindItem( int id)
+    public int FindItem( int id)
     {
         for (int i = 0; i < slot_datas.Count; i++)
         {

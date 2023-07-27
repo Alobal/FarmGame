@@ -132,6 +132,7 @@ namespace Item
 
             if (eventData.pointerCurrentRaycast.gameObject is GameObject go)
             {
+                //拖到另一个Slot上面
                 if (go.GetComponent<SlotUI>() is SlotUI target_slot)
                 {
                     //如果不是商店 则直接交换Slot数据
@@ -145,15 +146,17 @@ namespace Item
                     }
                 }
             }
-            else//没有击中UI，即鼠标落在地图上
+            else//拖到地图上
             {
                 if (item_detail.can_drop && slot_type==SlotType.Player)
                 {
                     int keep_id = item_detail.id;//提前备份id，以防最后一个物品扔掉后格子清空
-                    PackDataManager.instance.RemoveItem(index, 1);
+                    PackDataManager.instance.PlayerRemoveItemAt(index, 1);
                     Vector3 world_pos = Camera.main.ScreenToWorldPoint(eventData.position);
                     world_pos.z = 0;
                     WorldItemManager.instance.MakeItem(keep_id, world_pos);
+                    if (is_empty)
+                        ClickSlot.Invoke(this);
                 }
             }
         }

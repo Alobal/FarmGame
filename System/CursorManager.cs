@@ -33,7 +33,7 @@ public class CursorManager : Singleton<CursorManager>
     void Update()
     {
         MouseInput();
-        if(addition_image.sprite != null) 
+        if(addition_image.gameObject.activeInHierarchy && addition_image.sprite != null) 
             ImageFollow();
     }
 
@@ -71,12 +71,7 @@ public class CursorManager : Singleton<CursorManager>
                 ItemType.Tool => tool,
                 _ => normal
             };
-        if (cursor_texture!=null)
-        {
-            addition_image.gameObject.SetActive(false);
-            addition_image.sprite = null;
-            Cursor.visible = true;
-        }
+
         SetCursor(cursor_texture);
     }
 
@@ -91,6 +86,12 @@ public class CursorManager : Singleton<CursorManager>
 
     public void SetCursor(Texture2D texture)
     {
+        if (texture != null)//使用原cursor，而不是addition image
+        {
+            addition_image.gameObject.SetActive(false);
+            addition_image.sprite = null;
+            Cursor.visible = true;
+        }
         Cursor.SetCursor(texture,Vector2.zero,CursorMode.Auto);
     }
 }

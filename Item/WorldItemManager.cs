@@ -13,6 +13,7 @@ namespace Item
     {
         public List<ItemObject> item_list;//开始游戏后持久化保存，退出游戏后清空
         public GameObject item_prefab;
+        public GameObject building_item_prefab;
         private const string serialize_file = "WorldItemList.json";
         private string serialize_dir;
         private string serialize_path;
@@ -53,7 +54,7 @@ namespace Item
         /// <param name="world_item"></param>
         public void PickUpItem(ItemObject world_item)
         {
-            PackDataManager.instance.AddItemToPlayer(world_item.id);
+            PackDataManager.instance.PlayerAddItem(world_item.id);
             Remove(world_item);
         }
 
@@ -80,6 +81,14 @@ namespace Item
             world_item.init_id=item_id;
             AddToList(world_item);
             return world_item;
+        }
+
+        public BuildingItem MakeBuildingItem(int item_id, Vector3 pos)
+        {
+            var building_item = Instantiate(building_item_prefab, transform).GetComponent<BuildingItem>();
+            building_item.transform.position = pos;
+            building_item.blueprint_id = item_id;
+            return building_item;
         }
 
         //如果存在记录文件，则会删除scene上原有的item，重新生成记录的item

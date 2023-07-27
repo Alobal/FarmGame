@@ -16,7 +16,7 @@ namespace Item
 
         public ItemDetail item_detail;//item详细结构信息
         private SpriteRenderer sprite_render;//item渲染图片
-        private bool allow_pick = true;
+        public bool allow_pick = true;
         private BoxCollider2D collide;
         public int id
         {
@@ -45,6 +45,11 @@ namespace Item
                 Debug.Assert(sprite_render.sprite != null, $"{item_id} Item world sprite missing...");
 
                 UtilityMethods.AdaptiveBoxColliderToSprite(sprite_render.sprite, collide);
+            }
+            if (item_detail.item_type == ItemType.Furniture)
+            {
+                allow_pick = false;
+                GetComponent<BoxCollider2D>().isTrigger = false;
             }
         }
 

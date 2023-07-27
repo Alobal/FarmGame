@@ -99,6 +99,9 @@ public class Player : MonoBehaviour
                         if (tool_actions.ContainsKey(use_slot.item_detail.id))
                             tool_actions[use_slot.item_detail.id](click_pos);
                         break;
+                    case ItemType.BluePrint:
+                        MakeBuildingItem(click_pos);
+                        break;
                     default://drop action
                         if (target_go == null && use_slot.item_detail.can_drop)
                             ThrowItem(click_pos);
@@ -113,10 +116,16 @@ public class Player : MonoBehaviour
                 }
             }
 
-            
+            if (use_slot.is_empty)
+            {
+                use_slot = null;
+                animator_override.SwitchAnimator(PlayerAction.Default);
+                CursorManager.instance.SetCursor(CursorManager.instance.normal);
+            }
             input_enable = true;
         }
     }
+
 
     //点击道具栏，修改当前使用道具
     private void OnClickSlot(Item.SlotUI slot)
@@ -230,14 +239,20 @@ public class Player : MonoBehaviour
         if (Vector2.Distance(target_pos, transform.position) > Settings.throw_radius)
             return;
         ItemObject world_item = WorldItemManager.instance.MakeItem(use_slot.item_detail.id, hold_point.position);
-        PackDataManager.instance.RemoveItem(use_slot.index);
+        PackDataManager.instance.PlayerRemoveItemAt(use_slot.index);
         FaceDir(target_pos);
         world_item.Move(target_pos);
-        if(use_slot.is_empty)
-        {
-            use_slot = null;
-            animator_override.SwitchAnimator(PlayerAction.Default);
-        }
+    }
+
+
+    private void MakeBuildingItem(Vector2 target_pos)
+    {
+        if (Vector2.Distance(target_pos, transform.position) > Settings.throw_radius)
+            return;
+        WorldItemManager.instance.MakeBuildingItem(use_slot.item_detail.id, target_pos);
+        PackDataManager.instance.PlayerRemoveItemAt(use_slot.index);
+        FaceDir(target_pos);
+
     }
     private void DigTile(Vector2 target_pos)
     {
@@ -274,12 +289,7 @@ public class Player : MonoBehaviour
         FaceDir(target_pos);
         TilemapManager.instance.SetTileSeed(seed_tile, use_slot.item_detail.id);
         //清除物品
-        PackDataManager.instance.RemoveItem(use_slot.index);
-        if (use_slot.is_empty)
-        {
-            use_slot = null;
-            animator_override.SwitchAnimator(PlayerAction.Default);
-        }
+        PackDataManager.instance.PlayerRemoveItemAt(use_slot.index);
     }
     private void HarvsetCrop(CropObject crop,Vector2 target_pos)
     {

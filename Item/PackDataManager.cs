@@ -35,23 +35,39 @@ namespace Item
             return blueprint_data.GetBluePrint(id);
         }
 
-        public void AddItemToPlayer(int item_id)
+        #region PlayerBag 操作
+
+        public void PlayerAddItem(int item_id)
         {
             player_bag.PushItem(item_id);
             //更新UI
             UpdatePackData?.Invoke(SlotType.Player, player_bag);
         }
 
-        public bool RemoveItem(int slot_index,int amount=1)
+        public bool PlayerRemoveItemAt(int slot_index,int amount=1)
         {
-            if (player_bag.RemoveItem(slot_index, amount))
+            if (player_bag.RemoveItemAt(slot_index, amount))
             {
-                UpdatePackData.Invoke(SlotType.Player, player_bag);
+                UpdatePackData?.Invoke(SlotType.Player, player_bag);
                 return true;
             }
             else
                 return false;
         }
+
+        public bool PlayerRemoveItem(int item_id,int amount)
+        {
+            int slot_index = player_bag.FindItem(item_id);
+            if(slot_index!=-1)//存在该物品
+            {
+
+                return PlayerRemoveItemAt(slot_index, amount);
+            }
+            else
+                return false;
+        }
+
+        #endregion
 
         /// <summary>
         /// 检查Slot内的物品容量是否为0
@@ -104,7 +120,7 @@ namespace Item
             }
             //可成功交易
             target_bag.PushItem(source.item_detail.id, amount);
-            source_bag.RemoveItem(source.index,amount);
+            source_bag.RemoveItemAt(source.index,amount);
             player_bag.money -= cost;
 
             UpdatePackData?.Invoke(SlotType.Player, player_bag);
