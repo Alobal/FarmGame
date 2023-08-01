@@ -1,3 +1,4 @@
+using Audio;
 using Crop;
 using Item;
 using Map;
@@ -18,13 +19,16 @@ namespace Crop
         protected CropDetail crop_detail;
         protected int[] harvest_action_count;
         //Component
-        public GameObject prefab_now;
+        public GameObject prefab_now;//用于记录当前prefab，并根据阶段切换。
         protected SpriteRenderer sprite_render;//item渲染图片
         protected BoxCollider2D collide;
-        //粒子系统
+
+        [Header("Effect")]
+        protected Animator animator;
         [SerializeField] protected GameObject particle;
         [SerializeField] protected Vector2 particle_localpos;
         protected Vector2 particle_pos;
+        [SerializeField] protected SoundName harvest_sound_name;
 
         public int grow_stage//当前处于的生长阶段
         {
@@ -43,8 +47,8 @@ namespace Crop
             sprite_render = GetComponent<SpriteRenderer>();
             collide = GetComponent<BoxCollider2D>();
             particle_pos = (Vector2)transform.position + particle_localpos;
-            if (seed_id != 0)//设置好状态后 自动内部初始化
-                InitInternal(seed_id);//NOTE 不能在Awake里调用Awake唤醒的单例
+            if (seed_id != 0)//外部设置好seed后 自动内部初始化
+                InitInternal();//NOTE 不能在Awake里调用Awake唤醒的单例
         }
 
         private void OnEnable()
@@ -65,13 +69,22 @@ namespace Crop
             return true;
         }
 
-        public virtual void Harvest(int tool_id)
+        /// <summary>
+        /// 执行一次收割动作。一个作物可能需要收割几次。
+        /// </summary>
+        /// <param name="tool_id"></param>
+        public virtual void HarvestOnce(int tool_id)
         {
             Debug.Log("is haravesting...");
             //单次收割
             CheckHarvestable(tool_id);
             int tool_index=crop_detail.FindHarvestTool(tool_id);
             harvest_action_count[tool_index] += 1;
+            if (harvest_sound_name != SoundName.None)
+                HarvestSound();
+            //播放动画
+            if (animator != null)
+                HarvestAnimation();
             //播放粒子
             if (particle != null)
             {
@@ -81,27 +94,43 @@ namespace Crop
             //收割次数满足 实现收获
             if (harvest_action_count[tool_index] >= crop_detail.require_harvest_actions[tool_index])
             {
-                for(int i=0;i<crop_detail.product_itemids.Length;i++)
-                {
-                    int count = Random.Range(crop_detail.product_min_count[i], crop_detail.product_max_count[i]+1);
-                    for(int c =0;c<count;c++)
-                    {
-                        Vector2 delta_pos = new Vector2(Random.Range(-crop_detail.spawn_radius, crop_detail.spawn_radius+1),
-                                                        Random.Range(-crop_detail.spawn_radius, crop_detail.spawn_radius+1));
-                        Vector2 center_pos = (Vector2)transform.position;
-                        ItemObject product =WorldItemManager.instance.MakeItem(crop_detail.product_itemids[i], center_pos);
-                        product.Move(center_pos+delta_pos);
-                    }
-                }
-                harvest_action_count[tool_index] =0;
-                UpdateStatus(-3);
+                HarvestComplete();
+                harvest_action_count[tool_index] = 0;
             }
         }
+
+        protected virtual void HarvestComplete()
+        {
+            for (int i = 0; i < crop_detail.product_itemids.Length; i++)
+            {
+                int count = Random.Range(crop_detail.product_min_count[i], crop_detail.product_max_count[i] + 1);
+                for (int c = 0; c < count; c++)
+                {
+                    Vector2 delta_pos = new Vector2(Random.Range(-crop_detail.spawn_radius, crop_detail.spawn_radius + 1),
+                                                    Random.Range(-crop_detail.spawn_radius, crop_detail.spawn_radius + 1));
+                    Vector2 center_pos = (Vector2)transform.position;
+                    ItemObject product = WorldItemManager.instance.MakeItem(crop_detail.product_itemids[i], center_pos);
+                    product.Move(center_pos + delta_pos);
+                }
+            }
+            UpdateStatus(-3);
+        }
+
+        protected virtual void HarvestSound()
+        {
+            ObjectPoolManager.instance.GetSound(harvest_sound_name);
+        }
+        protected virtual void HarvestAnimation()
+        {
+        }
+
+
+
         /// 根据crop detail和生长天数，初始化内部组件和状态。
-        private void InitInternal(int init_id)
+        private void InitInternal()
         {
 
-            crop_detail = CropManager.instance.GetCropDetail(init_id);
+            crop_detail = CropManager.instance.GetCropDetail(seed_id);
             harvest_action_count = new int[crop_detail.harvest_toolids.Length];
             UpdateStatus(0);
         }
@@ -146,7 +175,6 @@ namespace Crop
                 tilepos_y=tile_pos.y,
                 pos_x = transform.position.x,
                 pos_y = transform.position.y,
-                prefab = this.prefab_now,
             };
         }
 
@@ -157,7 +185,6 @@ namespace Crop
             public int current_day;
             public int tilepos_x,tilepos_y;
             public float pos_x, pos_y;
-            public GameObject prefab;
         }
     }
 }

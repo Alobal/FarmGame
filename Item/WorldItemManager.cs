@@ -1,3 +1,4 @@
+using Save;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -9,7 +10,7 @@ namespace Item
     /// <summary>
     /// 场景world item 管理器，在运行时JSON序列化保存对每个scene内item的修改。
     /// </summary>
-    public class WorldItemManager : Singleton<WorldItemManager>
+    public class WorldItemManager : Singleton<WorldItemManager>,Save.ISavable
     {
         public List<ItemObject> item_list;//开始游戏后持久化保存，退出游戏后清空
         public GameObject item_prefab;
@@ -18,26 +19,31 @@ namespace Item
         private string serialize_dir;
         private string serialize_path;
 
+        string ISavable.GUID => GetComponent<Save.Guid>().guid;
+
         private void Start()
         {
             //收集手工预置的所有item
             for (int i = 0; i < transform.childCount; i++)
             {
                 if (transform.GetChild(i).GetComponent<ItemObject>() is ItemObject world_item)
-                    AddToList(world_item);
+                    AddItemToList(world_item);
             }
             serialize_dir = $"{Application.dataPath}/Temp/{gameObject.scene.name}";
             serialize_path = $"{serialize_dir}/{serialize_file}";
-            Load();
+            TransitionLoad();
+            //注册为保存对象
+            ISavable savable = this;
+            savable.RegisterSaveObject();
         }
         private void OnEnable()
         {
-            TransitionManager.BeforeSceneUnload += Save;
+            TransitionManager.BeforeSceneUnload += TransitionSave;
         }
 
         private void OnDisable()
         {
-            TransitionManager.BeforeSceneUnload -= Save;
+            TransitionManager.BeforeSceneUnload -= TransitionSave;
         }
 
         private void OnApplicationQuit()
@@ -54,6 +60,7 @@ namespace Item
         /// <param name="world_item"></param>
         public void PickUpItem(ItemObject world_item)
         {
+            ObjectPoolManager.instance.GetSound(Audio.SoundName.Pickup);
             PackDataManager.instance.PlayerAddItem(world_item.id);
             Remove(world_item);
         }
@@ -68,7 +75,7 @@ namespace Item
         }
 
 
-        private void AddToList(ItemObject world_item)
+        private void AddItemToList(ItemObject world_item)
         {
             world_item.pack_index = item_list.Count;
             item_list.Add(world_item);
@@ -79,7 +86,7 @@ namespace Item
             var world_item = Instantiate(item_prefab, transform).GetComponent<ItemObject>();
             world_item.transform.position = pos;
             world_item.init_id=item_id;
-            AddToList(world_item);
+            AddItemToList(world_item);
             return world_item;
         }
 
@@ -92,7 +99,7 @@ namespace Item
         }
 
         //如果存在记录文件，则会删除scene上原有的item，重新生成记录的item
-        private void Load()
+        private void TransitionLoad()
         {
             if (File.Exists(serialize_path))
             {
@@ -111,17 +118,23 @@ namespace Item
         }
 
         //保存功能交给场景转换器管理，而不是生命周期事件管理，因为希望每次重开游戏时刷新这些数据，但是场景转移时保留数据更改。
-        private void Save()
+        private void TransitionSave()
         {
             if (!File.Exists(serialize_dir))
                 Directory.CreateDirectory(serialize_dir);
 
+            SaveData save_data =GetSaveData();
+
+            File.WriteAllText(serialize_path, JsonUtility.ToJson(save_data));
+        }
+
+        public SaveData GetSaveData()
+        {
             SaveData save_data = new();
             save_data.save_list = new();
             for (int i = 0; i < item_list.Count; i++)
                 save_data.save_list.Add(item_list[i].GetSaveData());
-
-            File.WriteAllText(serialize_path, JsonUtility.ToJson(save_data));
+            return save_data;
         }
 
         [InspectorButton("清除ItemList文件保存数据")]
@@ -135,8 +148,31 @@ namespace Item
             Debug.Log($"清除文件失败：{serialize_path}");
         }
 
+        public void Save()
+        {
+            var save_data = GetSaveData();
+            GameSaveData.instance.scene_items[gameObject.scene.name]=save_data;
+        }
+
+        public  void Load()
+        {
+            if(GameSaveData.instance.scene_items[gameObject.scene.name] is SaveData save_data)
+            {
+                int count = item_list.Count;
+                for (int i = 0; i < count; i++)
+                    Remove(item_list[0]);
+
+                var save_list = save_data.save_list;
+                for (int i = 0; i < save_list.Count; i++)
+                    MakeItem(save_list[i].init_id,
+                             new Vector3(save_list[i].pos_x,
+                             save_list[i].pos_y,
+                             save_list[i].pos_z));
+            }
+        }
+
         [Serializable]
-        private struct SaveData
+        public struct SaveData
         {
             public List<ItemObject.SaveData> save_list;
         }

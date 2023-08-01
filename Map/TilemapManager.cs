@@ -1,4 +1,5 @@
 using Crop;
+using Save;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -11,10 +12,10 @@ namespace Map
 {
 
     /// <summary>
-    /// 所有TilemapDetail的管理器，存储于SO文件。Enbale加载，Disable更新保存。
+    /// 管理所有具有特殊功能(Flag)的tile,所有FlagTilemap的管理器，存储于SO文件。Enbale加载，Disable更新保存。
     /// </summary>
     [ExecuteInEditMode]
-    public class TilemapManager : Singleton<TilemapManager>
+    public class TilemapManager : Singleton<TilemapManager>, Save.ISavable
     {
 
         public MapPropertySO map_property_so;
@@ -26,6 +27,8 @@ namespace Map
         [SerializeField] private Tilemap water_tilemap;
         [SerializeField] private List<FlagTilemap> flag_tilemaps;
 
+        public string GUID => GetComponent<Save.Guid>().guid;
+
         private new void Awake()
         {
             base.Awake();
@@ -33,6 +36,14 @@ namespace Map
             flag_tilemaps = GetComponentsInChildren<FlagTilemap>().ToList();
 
         }
+
+        private void Start()
+        {
+            //注册为保存对象
+            ISavable savable = this;
+            savable.RegisterSaveObject();
+        }
+
         private void OnEnable()
         {
 #if UNITY_EDITOR
@@ -128,7 +139,7 @@ namespace Map
         }
 
         /// <summary>
-        /// 检查所有falg_tilemap，从左下角到右上角更新每个tile的property。每次覆盖更新。
+        /// 检查所有flag_tilemap，从左下角到右上角更新每个tile的Flag。每次覆盖更新。
         /// </summary>
         [InspectorButton("初始化Tilemap Flags")]
         [Conditional("UNITY_EDITOR")]
@@ -139,11 +150,12 @@ namespace Map
             {
                 Tilemap tilemap = flag_tilemap.tilemap;
                 Map.TileFlag property = flag_tilemap.flag;
-
+                //压缩边界
                 tilemap.CompressBounds();
                 Vector3Int min_cell = tilemap.cellBounds.min;
                 Vector3Int max_cell = tilemap.cellBounds.max;
 
+                //循环所有tile，
                 for (int x = min_cell.x; x < max_cell.x; x++)
                 {
                     for (int y = min_cell.y; y < max_cell.y; y++)
@@ -165,6 +177,33 @@ namespace Map
                 }
             }
             Save();
+        }
+
+        void ISavable.Save()
+        {
+            var list=map_property_so.DictToList(tile_dict);
+            GameSaveData.instance.scene_tile_pos[gameObject.scene.name] = list.Item1;
+            GameSaveData.instance.scene_tile_detail[gameObject.scene.name] = list.Item2;
+        }
+
+        void ISavable.Load()
+        {
+            List<Vector2Int> tile_poses= GameSaveData.instance.scene_tile_pos[gameObject.scene.name];
+            List<TileDetail> tile_detail_list = GameSaveData.instance.scene_tile_detail[gameObject.scene.name];
+            tile_dict = MapPropertySO.ListToDict(tile_poses, tile_detail_list);
+            //恢复特殊tile的贴图
+            foreach (var tile_detail in tile_dict.Values)
+            {
+                if (tile_detail.is_digged)
+                    SetTileDig(tile_detail, tile_detail.day_from_dig);
+                else if (tile_detail.is_watered)
+                    SetTileWater(tile_detail, tile_detail.day_from_water);
+                else
+                {
+                    dig_tilemap.SetTile((Vector3Int)tile_detail.cell_pos, null);
+                    water_tilemap.SetTile((Vector3Int)tile_detail.cell_pos, null);
+                }
+            }
         }
     }
 }

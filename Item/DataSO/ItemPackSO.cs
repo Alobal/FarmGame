@@ -101,4 +101,13 @@ public class ItemPackSO : ScriptableObject
         get { return slot_datas[i]; }
         set { slot_datas[i] = value; }
     }
+
+    public void Clone(ItemPackSO new_pack)
+    {
+        money = new_pack.money;
+        can_expend=new_pack.can_expend;
+        slot_datas = new (new_pack.slot_datas);
+    }
+        
+
 }

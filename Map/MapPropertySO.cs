@@ -22,10 +22,11 @@ namespace Map
         [SerializeField] private List<TileDetail> tile_details;
 
         //将字典转化为可序列化存储的双List
-        public void DictToList(Dictionary<Vector2Int, TileDetail> dict)
+        public (List<Vector2Int>, List<TileDetail>) DictToList(Dictionary<Vector2Int, TileDetail> dict)
         {
             cell_postions = dict.Keys.ToList();
             tile_details = dict.Values.ToList();
+            return (cell_postions, tile_details);
         }
 
         public Dictionary<Vector2Int, TileDetail> ListToDict()
@@ -34,6 +35,16 @@ namespace Map
             for (int i = 0; i < cell_postions.Count; i++)
             {
                 dict.Add(cell_postions[i], tile_details[i]);
+            }
+            return dict;
+        }
+
+        public static Dictionary<Vector2Int, TileDetail> ListToDict(List<Vector2Int> tile_pos, List<TileDetail> tile_detail)
+        {
+            Dictionary<Vector2Int, TileDetail> dict = new();
+            for (int i = 0; i < tile_pos.Count; i++)
+            {
+                dict.Add(tile_pos[i], tile_detail[i]);
             }
             return dict;
         }

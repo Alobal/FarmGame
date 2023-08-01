@@ -97,7 +97,7 @@ public class NPCPosition
 namespace Map
 {
     /// <summary>
-    /// 单个Tile的属性，一个Tile可以同时有多种属性：Dig,PlaceFurniture...
+    /// 单个Tile的特殊属性，一个Tile可以同时有多种属性：Dig,PlaceFurniture...
     /// </summary>
     [Serializable]
     public class TileDetail
@@ -188,3 +188,36 @@ public class ClickMouseLeftEventArgs
 #endregion
 
 
+namespace Audio
+{
+    public enum SoundName
+    {
+        None,FootStepSoft,FootStepHard,
+        Axe,Pickaxe,Hoe,Reap,Water,Basket, Chop,
+        Pickup,Plant,TreeFalling,Rustle,
+        AmbientOut1, AmbientOut2, MusicCalm1,MusicCalm2,AmbientIndoor
+    }
+}
+
+[Serializable]
+public struct SerialVec3
+{
+    public float x, y, z;
+    public static implicit operator SerialVec3(Vector3 v)
+    {
+        var sv = new SerialVec3();
+        sv.x = v.x;
+        sv.y = v.y;
+        sv.z = v.z;
+        return sv;
+    }
+
+    public static implicit operator Vector3(SerialVec3 sv)
+    {
+        var v = new Vector3();
+        v.x = sv.x;
+        v.y = sv.y;
+        v.z = sv.z;
+        return v;
+    }
+}

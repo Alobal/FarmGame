@@ -1,3 +1,4 @@
+using Save;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -6,7 +7,7 @@ using UnityEngine;
 /// <summary>
 /// 游戏逻辑时间，代表作物作息时间等，非物理时间。
 /// </summary>
-public class TimeManager : Singleton<TimeManager>
+public class TimeManager : Singleton<TimeManager>,Save.ISavable
 {
     //共计时间
     public int second_total { get; private set; }
@@ -28,6 +29,9 @@ public class TimeManager : Singleton<TimeManager>
     {
         get => (Season) (Settings.init_season + (month_total / Settings.season_hold)%Settings.season_hold);
     }
+
+    public string GUID => GetComponent<Save.Guid>().guid;
+
     public bool clock_pause;
 
     public static Action<int> MinuteEvent;
@@ -49,13 +53,20 @@ public class TimeManager : Singleton<TimeManager>
         year_total = Settings.init_year;
     }
 
+    private void Start()
+    {
+        //注册为保存对象
+        ISavable savable = this;
+        savable.RegisterSaveObject();
+    }
+
     private void FixedUpdate()
     {
         if(!clock_pause)
         {
             tik_time += Time.deltaTime*Settings.gametime_scale;
             if (Input.GetKeyDown(KeyCode.Tab))//调试加速
-                tik_time += 3600*24;
+                tik_time += 3600*20;
             if(tik_time> 1)
             {
 
@@ -68,47 +79,47 @@ public class TimeManager : Singleton<TimeManager>
 
     private void UpdateTimeEvent()
     {
-        //minute
-        int minutes_temp= second_total / Settings.second_hold;
+        //delta minute
+        int minutes_temp= Settings.init_minute+second_total / Settings.second_hold;
         int delta_min = minutes_temp - minute_total;
         if (delta_min>0)
         {
             minute_total = minutes_temp;
-            if(MinuteEvent!=null) MinuteEvent.Invoke(delta_min);
+            MinuteEvent?.Invoke(delta_min);
 
             //continue hour
-            int hour_temp = second_total / (Settings.minute_hold * Settings.second_hold);
+            int hour_temp = Settings.init_hour+second_total / (Settings.minute_hold * Settings.second_hold);
             int delta_hour = hour_temp - hour_total;
             if (delta_hour>0)
             {
                 hour_total = hour_temp;
-                if (HourEvent != null) HourEvent.Invoke(delta_hour);
+                HourEvent?.Invoke(delta_hour);
 
                 //continue day
-                int day_temp = second_total / (Settings.hour_hold * Settings.minute_hold *Settings.second_hold);
+                int day_temp = Settings.init_day+second_total / (Settings.hour_hold * Settings.minute_hold *Settings.second_hold);
                 int delta_day = day_temp - day_total;
                 if (delta_day>0)
                 {
                     day_total = day_temp;
-                    if (DayEvent != null) DayEvent.Invoke(delta_day);
+                    DayEvent?.Invoke(delta_day);
 
                     //continue month
-                    int month_temp =second_total / (Settings.day_hold * Settings.hour_hold
+                    int month_temp = Settings.init_month+second_total / (Settings.day_hold * Settings.hour_hold
                                     * Settings.minute_hold * Settings.second_hold);
                     int delta_month = month_temp - month_total;
                     if (month_temp > month_total)
                     {
                         month_total = month_temp;
-                        if (MonthEvent != null) MonthEvent.Invoke(delta_month);
+                        MonthEvent?.Invoke(delta_month);
 
                         //continue year
-                        int year_temp = second_total / (Settings.month_hold * Settings.day_hold *
+                        int year_temp = Settings.init_year + second_total / (Settings.month_hold * Settings.day_hold *
                                         Settings.hour_hold * Settings.minute_hold * Settings.second_hold);
                         int delta_year=year_temp - year_total;
                         if (year_temp > year_total)
                         {
                             year_total = year_temp;
-                            if (YearEvent != null) YearEvent.Invoke(delta_year);
+                            YearEvent?.Invoke(delta_year);
                         }
                     }
                 }
@@ -116,10 +127,32 @@ public class TimeManager : Singleton<TimeManager>
         }
     }
 
+
+
     public static int ComputeSeconds(int hour,int minute)
     {
         return hour * Settings.hour_hold * Settings.minute_hold +
                 minute * Settings.minute_hold;
     }
 
+    public void Save()
+    {
+        GameSaveData.instance.second_total = second_total;
+    }
+
+    public void Load()
+    {
+        second_total=GameSaveData.instance.second_total;
+        minute_total = Settings.init_minute;
+        hour_total = Settings.init_hour;
+        day_total = Settings.init_day;
+        month_total = Settings.init_month;
+        year_total = Settings.init_year;
+        MinuteEvent?.Invoke(0);
+        HourEvent?.Invoke(0);
+        DayEvent?.Invoke(0);
+        MonthEvent?.Invoke(0);
+        YearEvent?.Invoke(0);
+
+    }
 }

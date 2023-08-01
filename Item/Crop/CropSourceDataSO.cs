@@ -7,6 +7,12 @@ using UnityEngine;
 public class CropSourceDataSO: ScriptableObject
 {
     public List<CropDetail> crop_details;
+
+    public GameObject GetPrefab(int seed_id,int day)
+    {
+        CropDetail detail = crop_details.Find(x => x.seed_id == seed_id);
+        return detail.prefabs[day];
+    }
 }
    
 

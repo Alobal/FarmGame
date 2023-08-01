@@ -5,10 +5,11 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.IO;
 using Map;
+using Save;
 
 namespace Crop
 {
-    public class CropManager : Singleton<CropManager>
+    public class CropManager : Singleton<CropManager>,Save.ISavable
     {
         public CropSourceDataSO source_data;
         public List<CropObject> crop_list;//在tile中种植的crop，需要在退出时保存所有状态，并在开始时重新加载
@@ -16,7 +17,7 @@ namespace Crop
         private string save_dir;
         private string crop_save_path;
 
-
+        public string GUID => GetComponent<Save.Guid>().guid;
 
         private new void Awake()
         {
@@ -27,9 +28,16 @@ namespace Crop
 
         }
 
+        private void Start()
+        {
+            //注册为保存对象
+            ISavable savable = this;
+            savable.RegisterSaveObject();
+        }
+
         private void OnEnable()
         {
-            Load();
+            LoadOnBeginning();
             TransitionManager.BeforeSceneUnload +=SaveOnTransition;
         }
 
@@ -61,20 +69,20 @@ namespace Crop
             MakeCrop(data.seed_id,
                      new Vector2(data.pos_x, data.pos_y),
                      new Vector2Int(data.tilepos_x, data.tilepos_y),
-                     data.current_day,
-                     data.prefab);
+                     data.current_day);
         }
 
         /// 实例化Crop，并设置好相关外部数据。
-        public void MakeCrop(int seed_id,Vector2 pos,Vector2Int tile_pos,int init_day=0,GameObject init_prefab=null)
+        public void MakeCrop(int seed_id,Vector2 pos,Vector2Int tile_pos,int init_day=0)
         {
-            //FIX：如何判断场景是否第一次加载。这里用坐标避免重复来取巧，避免重复加载场景时，重复加载野生crop
+            //FIX：如何判断场景是否第一次加载。这里用坐标避免重复来取巧，避免重复加载场景时，重复加载预设的野生crop
             if (GetCropObject(pos) != null)
                 return;
 
             CropDetail crop_detail=GetCropDetail(seed_id);
-            if (init_prefab == null)
-                init_prefab = crop_detail.prefabs[0];
+            GameObject init_prefab=source_data.GetPrefab(seed_id, init_day);
+            //if (init_prefab == null)
+            //    init_prefab = crop_detail.prefabs[0];
             CropObject crop_object = Instantiate(init_prefab,transform).GetComponent<CropObject>();
 
             crop_object.transform.position = pos;
@@ -85,7 +93,11 @@ namespace Crop
             crop_list.Add(crop_object);
         }
 
-        //销毁CropObject，默认也会从维护列表crop list中移除
+        /// <summary>
+        /// 销毁CropObject，默认也会从维护列表crop list中移除。
+        /// </summary>
+        /// <param name="crop_object"></param>
+        /// <param name="remove_in_list">提供是否从维护列表crop list中移除的选项，避免在循环中调用Remove</param>
         public void RemoveCrop(CropObject crop_object,bool remove_in_list=true)
         {
             if(TilemapManager.instance.GetTileDetail(crop_object.tile_pos) is TileDetail crop_tile)
@@ -103,7 +115,7 @@ namespace Crop
         }
 
         //读取记录时，清空Manager已管理的crop，再从记录文件读取生成。
-        private void Load()
+        private void LoadOnBeginning()
         {
             if (File.Exists(crop_save_path))
             {
@@ -117,8 +129,7 @@ namespace Crop
                     MakeCrop(save_list[i].seed_id,
                              new Vector2(save_list[i].pos_x,save_list[i].pos_y),
                              new Vector2Int(save_list[i].tilepos_x, save_list[i].tilepos_y),
-                             save_list[i].current_day,
-                             save_list[i].prefab);
+                             save_list[i].current_day);
             }
         }
 
@@ -133,6 +144,13 @@ namespace Crop
             if (!File.Exists(save_dir))
                 Directory.CreateDirectory(save_dir);
 
+            SaveData save_data = GetSaveData(save_wild);
+
+            File.WriteAllText(crop_save_path, JsonUtility.ToJson(save_data));
+        }
+
+        public SaveData GetSaveData(bool save_wild)
+        {
             SaveData save_data = new();
             save_data.save_list = new();
             for (int i = 0; i < crop_list.Count; i++)
@@ -141,8 +159,7 @@ namespace Crop
                     continue;
                 save_data.save_list.Add(crop_list[i].GetSaveData());
             }
-
-            File.WriteAllText(crop_save_path, JsonUtility.ToJson(save_data));
+            return save_data;
         }
 
         private void SaveOnTransition() { Save(); }
@@ -164,8 +181,31 @@ namespace Crop
                 Debug.Log($"清除文件失败：{crop_save_path}");
         }
 
+        public void Save()
+        {
+            SaveData save_data = GetSaveData(true);
+            GameSaveData.instance.scene_crops[gameObject.scene.name]=save_data;
+        }
+
+        public void Load()
+        {
+            if(GameSaveData.instance.scene_crops[gameObject.scene.name] is SaveData save_data)
+            {
+                for (int i = 0; i < crop_list.Count; i++)
+                    RemoveCrop(crop_list[i], false);
+                crop_list.Clear();
+
+                var save_list = save_data.save_list;
+                for (int i = 0; i < save_list.Count; i++)
+                    MakeCrop(save_list[i].seed_id,
+                             new Vector2(save_list[i].pos_x, save_list[i].pos_y),
+                             new Vector2Int(save_list[i].tilepos_x, save_list[i].tilepos_y),
+                             save_list[i].current_day);
+            }
+        }
+
         [Serializable]
-        private struct SaveData
+        public struct SaveData
         {
             public List<CropObject.SaveData> save_list;
         }

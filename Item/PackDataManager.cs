@@ -1,3 +1,4 @@
+using Save;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -9,7 +10,7 @@ namespace Item
     /// <summary>
     /// 包裹数据管理。
     /// </summary>
-    public class PackDataManager : Singleton<PackDataManager>
+    public class PackDataManager : Singleton<PackDataManager>,Save.ISavable
     {
         [Header("物品源数据")]
         public ItemSourceDataSO item_data;// FIX 怎么确保引用给出的变量不变
@@ -18,12 +19,18 @@ namespace Item
         public ItemPackSO player_bag;//FIX 如何控制UI格子数量和data数量同步
         [HideInInspector]public ItemPackSO other_bag;//客体背包数据，每次打开商店或仓库时填充引用，关闭时清除引用
 
+        public string GUID => GetComponent<Save.Guid>().guid;
+
         public static event Action<SlotType, ItemPackSO> UpdatePackData;//数据变动事件
 
         private void Start()
         {
             UpdatePackData?.Invoke(SlotType.Player,player_bag);
             EditorUtility.SetDirty(player_bag);
+
+            //注册为保存对象
+            ISavable savable = this;
+            savable.RegisterSaveObject();
         }
         public ItemDetail GetItemDetail(int id)
         {
@@ -136,6 +143,19 @@ namespace Item
         private ItemPackSO GetPack(SlotType slot_type)
         {
             return slot_type == SlotType.Player ? player_bag : other_bag;
+        }
+
+        public void Save()
+        {
+            GameSaveData.instance.pack_data[GUID]=player_bag;
+        }
+
+        public void Load()
+        {
+            
+            player_bag.Clone(GameSaveData.instance.pack_data[GUID]);
+            UpdatePackData?.Invoke(SlotType.Player, player_bag);
+
         }
     }
 }

@@ -6,8 +6,11 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using Map;
 using Crop;
+using Audio;
+using Save;
+using UnityEditorInternal;
 
-public class Player : MonoBehaviour
+public class Player : MonoBehaviour,Save.ISavable
 {
     #region 运动
     public float speed=5;
@@ -17,20 +20,22 @@ public class Player : MonoBehaviour
     {
         get => input_move != Vector2.zero;
     }
-    #endregion
 
-    #region 人物状态
+    #endregion
+    public string GUID => GetComponent<Save.Guid>().guid;
+
+    #region 道具相关
     private Item.SlotUI use_slot;//丢弃物体时需要slot信息，因此这里用的不是ItemDetail
-    #endregion
-
     [SerializeField] private Transform hold_point;
     private Dictionary<int, Action<Vector2>> tool_actions;
+    #endregion
 
+    #region 组件
     private Rigidbody2D rb;
     [SerializeField]
     private Animator[] animators;//身体各个部位的动画控制器
     private AnimatorOverride animator_override;
-
+    #endregion
 
     private void Awake()
     {
@@ -43,6 +48,13 @@ public class Player : MonoBehaviour
             [1011] = DigTile,
             [1012] = WaterTile,
         };
+    }
+
+    private void Start()
+    {
+        //注册为保存对象
+        ISavable savable = this;
+        savable.RegisterSaveObject();
     }
 
     private void Update()
@@ -170,7 +182,6 @@ public class Player : MonoBehaviour
         input_enable = true;
     }
 
-
     #region Animator
     private void MoveAnimation()
     {
@@ -264,6 +275,7 @@ public class Player : MonoBehaviour
             return;
 
         UseItemAnimation(target_pos);
+        ObjectPoolManager.instance.GetSound(SoundName.Hoe);
         TilemapManager.instance.SetTileDig(tile_detail);
     }
 
@@ -282,11 +294,13 @@ public class Player : MonoBehaviour
     {
         if (Vector2.Distance(target_pos, transform.position) > use_slot.item_detail.use_radius)
             return;
+        //获取目标tile
         TileDetail seed_tile = TilemapManager.instance.GetTileDetail(target_pos);
         if (seed_tile == null || !seed_tile.can_seed)
             return;
 
         FaceDir(target_pos);
+        ObjectPoolManager.instance.GetSound(SoundName.Plant);
         TilemapManager.instance.SetTileSeed(seed_tile, use_slot.item_detail.id);
         //清除物品
         PackDataManager.instance.PlayerRemoveItemAt(use_slot.index);
@@ -296,7 +310,20 @@ public class Player : MonoBehaviour
         if (!crop.CheckHarvestable(use_slot.item_detail.id))
             return ;
         UseItemAnimation(crop.transform.position);
-        crop.Harvest(use_slot.item_detail.id);
+        crop.HarvestOnce(use_slot.item_detail.id);
+    }
+
+    public void Save()
+    {
+        GameSaveData.instance.character_pos[GUID]=transform.position;
+        GameSaveData.instance.scene_name=SceneManager.GetActiveScene().name;
+    }
+
+    public void Load()
+    {
+        GameSaveData save_data=GameSaveData.instance;
+        //StartCoroutine(TransitionManager.instance.LoadSceneSetActive(save_data.scene_name));
+        transform.position = save_data.character_pos[GUID];
     }
     #endregion
 
