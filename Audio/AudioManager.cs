@@ -83,12 +83,24 @@ namespace Audio
             }
         }
 
-        private float LinearVolumeToDB(float linear_volume)
+        public void SetMixerVolume(string group,float volume_f)
+        {
+            audio_mixer.SetFloat(group, LinearVolumeToDB(volume_f));
+        }
+
+        public float GetMixerVolume (string group)
+        {
+            float result;
+            audio_mixer.GetFloat(group,out result);
+            return DBVolumeToLinear(result);  
+        }
+
+        static private float LinearVolumeToDB(float linear_volume)
         {
             return linear_volume != 0 ? 20.0f * Mathf.Log10(linear_volume) : -60;
         }
 
-        private float DBVolumeToLinear(float db_volume)
+        static private float DBVolumeToLinear(float db_volume)
         {
             return Mathf.Pow(10.0f, db_volume / 20.0f);
         }

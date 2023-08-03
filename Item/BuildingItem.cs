@@ -5,22 +5,19 @@ using System.Collections.Generic;
 using UnityEngine;
 
 //TODO 和Itemobject整合起来
-[RequireComponent(typeof(SpriteRenderer),typeof(BoxCollider2D))]
-public class BuildingItem : MonoBehaviour
+
+public class BuildingItem : ItemObject
 {
-    public int blueprint_id;
     private BluePrintDetail blueprint;
-    [SerializeField] private SpriteRenderer sprite_renderer;
-    [SerializeField] private BoxCollider2D collide;
-    private SlotItem[] need_resource;
+    public SlotItem[] need_resource;
     bool player_near = false;
 
     private bool is_complete { get => Array.FindIndex(need_resource, (x => x.item_amount > 0)) == -1; }
 
-    private void Start()
+    protected override void Start()
     {
-        if (blueprint_id != 0)
-            Init();
+        if (init_id != 0)
+            InitInternal();
     }
 
     private void Update()
@@ -49,22 +46,24 @@ public class BuildingItem : MonoBehaviour
         }
     }
 
-
-
     private void Complete()
     {
         WorldItemManager.instance.MakeItem(blueprint.product_id, transform.position);
-        Destroy(gameObject);
+        WorldItemManager.instance.Remove(this);
     }
 
-    public void Init()
+    protected override void InitInternal()
     {
-        blueprint=PackDataManager.instance.GetBluePrintDetail(blueprint_id);
+        blueprint=PackDataManager.instance.GetBluePrintDetail(init_id);
         ItemDetail product_detail=PackDataManager.instance.GetItemDetail(blueprint.product_id);
-        sprite_renderer.sprite = product_detail.world_sprite;
-        need_resource = new SlotItem[blueprint.resources.Length];
-        blueprint.resources.CopyTo(need_resource,0);
-        UtilityMethods.AdaptiveBoxColliderToSprite(sprite_renderer.sprite, collide);
+
+        sprite_render.sprite = product_detail.world_sprite;
+        if (need_resource == null || need_resource.Length == 0)
+        {
+            need_resource = new SlotItem[blueprint.resources.Length];
+            blueprint.resources.CopyTo(need_resource, 0);
+        }
+        UtilityMethods.AdaptiveBoxColliderToSprite(sprite_render.sprite, collide);
     }
 
     private void OpenResourcePanel()
@@ -73,7 +72,7 @@ public class BuildingItem : MonoBehaviour
 
         BluePrintDetail bp_detail = new BluePrintDetail();
         bp_detail.resources = need_resource;
-        Vector3 panel_pos = transform.position + Vector3.up * sprite_renderer.sprite.bounds.size.y * 1.1f;
+        Vector3 panel_pos = transform.position + Vector3.up * sprite_render.sprite.bounds.size.y * 1.1f;
         GeneralUIManager.instance.resource_panel.Open(bp_detail, panel_pos);
     }
 
@@ -89,6 +88,23 @@ public class BuildingItem : MonoBehaviour
         GeneralUIManager.instance.resource_panel.Close();
         player_near = false;
 
+    }
+
+    public new SaveData GetSaveData()
+    {
+        return new SaveData()
+        {
+            blueprint_id = this.init_id,
+            need_resource = this.need_resource,
+            pos = transform.position
+        };
+    }
+
+    public new struct SaveData
+    {
+        public int blueprint_id;
+        public SerialVec3 pos;
+        public SlotItem[] need_resource;
     }
 
 }

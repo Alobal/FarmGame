@@ -51,9 +51,23 @@ public class TimeManager : Singleton<TimeManager>,Save.ISavable
         day_total = Settings.init_day;
         month_total = Settings.init_month;
         year_total = Settings.init_year;
+
+        //注册为保存对象
+        ISavable savable = this;
+        savable.RegisterSaveObject();
     }
 
-    private void Start()
+    private void OnEnable()
+    {
+        TransitionManager.AfterSceneLoad += OnAfterSceneLoad;
+    }
+
+    private void OnDisable()
+    {
+        TransitionManager.AfterSceneLoad -= OnAfterSceneLoad;
+    }
+
+    private void OnAfterSceneLoad(object sender, AfterSceneLoadEventArgs e)
     {
         //注册为保存对象
         ISavable savable = this;
@@ -148,11 +162,7 @@ public class TimeManager : Singleton<TimeManager>,Save.ISavable
         day_total = Settings.init_day;
         month_total = Settings.init_month;
         year_total = Settings.init_year;
-        MinuteEvent?.Invoke(0);
-        HourEvent?.Invoke(0);
-        DayEvent?.Invoke(0);
-        MonthEvent?.Invoke(0);
-        YearEvent?.Invoke(0);
+        UpdateTimeEvent();
 
     }
 }

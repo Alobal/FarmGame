@@ -25,21 +25,21 @@ namespace Crop
             save_dir = $"{Application.dataPath}/Temp/{gameObject.scene.name}";
             crop_save_path = $"{save_dir}/{crop_save_file}";
 
-
-        }
-
-        private void Start()
-        {
             //注册为保存对象
             ISavable savable = this;
             savable.RegisterSaveObject();
         }
-
         private void OnEnable()
         {
             LoadOnBeginning();
             TransitionManager.BeforeSceneUnload +=SaveOnTransition;
         }
+
+        private void Start()
+        {
+
+        }
+
 
         private void OnDisable()
         {
@@ -107,6 +107,19 @@ namespace Crop
             {
                 crop_list.Remove(crop_object);
             }
+        }
+
+        /// <summary>
+        /// 清空地图上所有的Crop。
+        /// </summary>
+        /// <param name="clear_wild">是否清空预置的wild crop</param>
+        public void Clear(bool clear_wild=false)
+        {
+            for (int i = crop_list.Count-1; i >=0 ; i--)
+                if (clear_wild == false && crop_list[i].is_wild)
+                    continue;
+                else
+                    RemoveCrop(crop_list[i], true);
         }
 
         private CropObject GetCropObject(Vector2 pos)

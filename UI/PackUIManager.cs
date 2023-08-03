@@ -24,6 +24,7 @@ namespace Item
         public Image drag_image;//由对应slot填充拖拽显示的图片
         public TradeUI trade_ui;
 
+       
         private void Start()
         {
         }

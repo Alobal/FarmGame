@@ -48,13 +48,16 @@ public class Player : MonoBehaviour,Save.ISavable
             [1011] = DigTile,
             [1012] = WaterTile,
         };
+
+        //注册为保存对象
+        ISavable savable = this;
+        savable.RegisterSaveObject();
+        
     }
 
     private void Start()
     {
-        //注册为保存对象
-        ISavable savable = this;
-        savable.RegisterSaveObject();
+
     }
 
     private void Update()
@@ -73,18 +76,22 @@ public class Player : MonoBehaviour,Save.ISavable
 
     private void OnEnable()
     {
+        SaveLoadManager.NewGameEvent += OnNewGame;
         TransitionManager.BeforeSceneUnload += StopInput;
         TransitionManager.AfterSceneLoad += OnSceneLoad;
         Item.SlotUI.ClickSlot += OnClickSlot;
         CursorManager.ClickMouseLeft += OnMouseLeft;
     }
 
+
     private void OnDisable()
     {
+        SaveLoadManager.NewGameEvent -= OnNewGame;
         TransitionManager.BeforeSceneUnload -= StopInput;
         TransitionManager.AfterSceneLoad -= OnSceneLoad;
         Item.SlotUI.ClickSlot -= OnClickSlot;
         CursorManager.ClickMouseLeft -= OnMouseLeft;
+
 
     }
     /// <summary>
@@ -178,8 +185,10 @@ public class Player : MonoBehaviour,Save.ISavable
     }
     private void OnSceneLoad(object sender, AfterSceneLoadEventArgs e)
     {
-        transform.position = e.target_position;
         input_enable = true;
+        //注册为保存对象
+        ISavable savable = this;
+        savable.RegisterSaveObject();
     }
 
     #region Animator
@@ -312,11 +321,11 @@ public class Player : MonoBehaviour,Save.ISavable
         UseItemAnimation(crop.transform.position);
         crop.HarvestOnce(use_slot.item_detail.id);
     }
+    #endregion
 
     public void Save()
     {
         GameSaveData.instance.character_pos[GUID]=transform.position;
-        GameSaveData.instance.scene_name=SceneManager.GetActiveScene().name;
     }
 
     public void Load()
@@ -325,6 +334,11 @@ public class Player : MonoBehaviour,Save.ISavable
         //StartCoroutine(TransitionManager.instance.LoadSceneSetActive(save_data.scene_name));
         transform.position = save_data.character_pos[GUID];
     }
-    #endregion
+
+
+    private void OnNewGame()
+    {
+        transform.position = new Vector3(-10f, 6.5f, 0f);
+    }
 
 }

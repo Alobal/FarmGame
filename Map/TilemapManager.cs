@@ -14,7 +14,6 @@ namespace Map
     /// <summary>
     /// 管理所有具有特殊功能(Flag)的tile,所有FlagTilemap的管理器，存储于SO文件。Enbale加载，Disable更新保存。
     /// </summary>
-    [ExecuteInEditMode]
     public class TilemapManager : Singleton<TilemapManager>, Save.ISavable
     {
 
@@ -32,28 +31,24 @@ namespace Map
         private new void Awake()
         {
             base.Awake();
-            if (grid == null) grid = GetComponent<Grid>();
+            if (grid == null) 
+                grid = GetComponent<Grid>();
             flag_tilemaps = GetComponentsInChildren<FlagTilemap>().ToList();
 
-        }
+            if (map_property_so != null)
+            {
+                TempLoad();
+                EditorUtility.SetDirty(map_property_so);
+            }
 
-        private void Start()
-        {
+            InitFlagTile();
+
             //注册为保存对象
             ISavable savable = this;
             savable.RegisterSaveObject();
         }
 
-        private void OnEnable()
-        {
-#if UNITY_EDITOR
-            if (map_property_so != null)
-            {
-                Load();
-                EditorUtility.SetDirty(map_property_so);
-            }
-#endif
-        }
+
         /// <summary>
         /// 注意[ExecuteInEditMode]特性使得脚本在编辑器模式中可运行。
         /// 并且由于Unity在进入Play mode时会自动卸载当前常场景并重新加载,因此进入Play mode会调用该脚本的OnDisabl，退出会调用OnEnable。
@@ -61,10 +56,10 @@ namespace Map
         private void OnDisable()
         {
             if (map_property_so != null)
-                Save();
+                TempSave();
         }
 
-        private void Load()
+        private void TempLoad()
         {
             //加载保存的tile数据
             tile_dict = map_property_so.ListToDict();
@@ -79,7 +74,7 @@ namespace Map
         }
 
         //保存TileDetail数据，注意不会保存TileBase的贴图修改，这与TileDetail无关。
-        private void Save()
+        private void TempSave()
         {
             map_property_so.DictToList(tile_dict);
         }
@@ -93,7 +88,7 @@ namespace Map
                 tile_detail.day_from_dig = day_from_dig;
                 if (!tile_detail.is_timing)
                     tile_detail.StartTimeEvent();
-                Save();
+                TempSave();
             }
         }
 
@@ -105,7 +100,7 @@ namespace Map
                 tile_detail.day_from_water = day_from_water;
                 if (!tile_detail.is_timing)
                     tile_detail.StartTimeEvent();
-                Save();
+                TempSave();
             }
         }
 
@@ -126,6 +121,11 @@ namespace Map
             return tile_detail;
         }
 
+        /// <summary>
+        /// 根据网格坐标得到TileDetail
+        /// </summary>
+        /// <param name="grid_pos"></param>
+        /// <returns>查找失败则返回null</returns>
         public TileDetail GetTileDetail(Vector2Int grid_pos)
         {
             TileDetail tile_detail;
@@ -143,7 +143,7 @@ namespace Map
         /// </summary>
         [InspectorButton("初始化Tilemap Flags")]
         [Conditional("UNITY_EDITOR")]
-        private void InitMapProperty()
+        private void InitFlagTile()
         {
             tile_dict.Clear();
             foreach (var flag_tilemap in flag_tilemaps)
@@ -176,17 +176,19 @@ namespace Map
                     }
                 }
             }
-            Save();
+            CropManager.instance.Clear();
+            TempSave();
         }
 
-        void ISavable.Save()
+        #region 存档相关
+        public void Save()
         {
             var list=map_property_so.DictToList(tile_dict);
             GameSaveData.instance.scene_tile_pos[gameObject.scene.name] = list.Item1;
             GameSaveData.instance.scene_tile_detail[gameObject.scene.name] = list.Item2;
         }
 
-        void ISavable.Load()
+        public void Load()
         {
             List<Vector2Int> tile_poses= GameSaveData.instance.scene_tile_pos[gameObject.scene.name];
             List<TileDetail> tile_detail_list = GameSaveData.instance.scene_tile_detail[gameObject.scene.name];
@@ -205,5 +207,7 @@ namespace Map
                 }
             }
         }
+
+        #endregion
     }
 }

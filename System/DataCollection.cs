@@ -165,12 +165,10 @@ public class AfterSceneLoadEventArgs: EventArgs
 {
     public string origin_scene;
     public string target_scene;
-    public Vector3 target_position;
-    public AfterSceneLoadEventArgs (string os,string ts, Vector3 tp)
+    public AfterSceneLoadEventArgs (string os,string ts)
     {
         origin_scene = os;
         target_scene = ts;
-        target_position = tp;
     }
 }
 

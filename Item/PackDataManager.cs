@@ -23,15 +23,55 @@ namespace Item
 
         public static event Action<SlotType, ItemPackSO> UpdatePackData;//数据变动事件
 
-        private void Start()
+        protected override void Awake()
         {
-            UpdatePackData?.Invoke(SlotType.Player,player_bag);
+            base.Awake();
             EditorUtility.SetDirty(player_bag);
 
             //注册为保存对象
             ISavable savable = this;
             savable.RegisterSaveObject();
         }
+
+        private void Start()
+        {
+            UpdatePackData?.Invoke(SlotType.Player,player_bag);
+
+        }
+
+        private void OnEnable()
+        {
+            SaveLoadManager.NewGameEvent += OnNewGame;
+            TransitionManager.AfterSceneLoad += OnAfterSceneLoad;
+        }
+
+        private void OnDisable()
+        {
+            SaveLoadManager.NewGameEvent -= OnNewGame;
+            TransitionManager.AfterSceneLoad -= OnAfterSceneLoad;
+
+        }
+
+        private void OnAfterSceneLoad(object sender, AfterSceneLoadEventArgs e)
+        {
+            //注册为保存对象
+            ISavable savable = this;
+            savable.RegisterSaveObject();
+        }
+        private void OnNewGame()
+        {
+            //初始化玩家背包数据
+            for(int i=0;i<player_bag.slot_datas.Count;i++)
+            {
+                player_bag.slot_datas[i] = new SlotItem
+                {
+                    item_amount = 0,
+                    item_id = 0
+                };
+            }
+            UpdatePackData?.Invoke(SlotType.Player, player_bag);
+        }
+
         public ItemDetail GetItemDetail(int id)
         {
             return item_data.item_details.Find(x => x.id == id);

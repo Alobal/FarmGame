@@ -74,7 +74,7 @@ public class NPCMovement : MonoBehaviour
                 animator.SetBool("play_event", false) ;
             }
 
-            if (!is_moving)//当前不在移动，则要么去新的path节点，要么已经到达终点
+            if (!is_moving)//当前不在移动，则要么去新的path节点，要么已经到达终点，取新的schedule
             {
                 if (path_nodes.Count > 0)//去新的path节点
                 {

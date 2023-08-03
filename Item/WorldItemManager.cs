@@ -21,20 +21,30 @@ namespace Item
 
         string ISavable.GUID => GetComponent<Save.Guid>().guid;
 
-        private void Start()
+        protected override void Awake()
         {
+            base.Awake();
+
             //收集手工预置的所有item
             for (int i = 0; i < transform.childCount; i++)
             {
                 if (transform.GetChild(i).GetComponent<ItemObject>() is ItemObject world_item)
                     AddItemToList(world_item);
+
             }
             serialize_dir = $"{Application.dataPath}/Temp/{gameObject.scene.name}";
             serialize_path = $"{serialize_dir}/{serialize_file}";
             TransitionLoad();
+
             //注册为保存对象
             ISavable savable = this;
             savable.RegisterSaveObject();
+
+        }
+
+        private void Start()
+        {
+
         }
         private void OnEnable()
         {
@@ -61,11 +71,11 @@ namespace Item
         public void PickUpItem(ItemObject world_item)
         {
             ObjectPoolManager.instance.GetSound(Audio.SoundName.Pickup);
-            PackDataManager.instance.PlayerAddItem(world_item.id);
+            PackDataManager.instance.PlayerAddItem(world_item.init_id);
             Remove(world_item);
         }
 
-        private void Remove(ItemObject world_item)
+        public void Remove(ItemObject world_item)
         {
             item_list.RemoveAt(world_item.pack_index);
             Destroy(world_item.gameObject);
@@ -90,11 +100,14 @@ namespace Item
             return world_item;
         }
 
-        public BuildingItem MakeBuildingItem(int item_id, Vector3 pos)
+        public BuildingItem MakeBuildingItem(int item_id, Vector3 pos, SlotItem[] need_resource=null)
         {
             var building_item = Instantiate(building_item_prefab, transform).GetComponent<BuildingItem>();
             building_item.transform.position = pos;
-            building_item.blueprint_id = item_id;
+            building_item.init_id = item_id;
+            if(need_resource!=null)
+                building_item.need_resource = need_resource;
+            AddItemToList(building_item);
             return building_item;
         }
 
@@ -108,7 +121,7 @@ namespace Item
                     Remove(item_list[0]);
 
                 string json_data = File.ReadAllText(serialize_path);
-                var save_list = JsonUtility.FromJson<SaveData>(json_data).save_list;
+                var save_list = JsonUtility.FromJson<SaveData>(json_data).item_list;
                 for (int i = 0; i < save_list.Count; i++)
                     MakeItem(save_list[i].init_id,
                              new Vector3(save_list[i].pos_x,
@@ -130,10 +143,21 @@ namespace Item
 
         public SaveData GetSaveData()
         {
-            SaveData save_data = new();
-            save_data.save_list = new();
+            SaveData save_data = new()
+            {
+                item_list = new(),
+                building_list = new()
+            };
             for (int i = 0; i < item_list.Count; i++)
-                save_data.save_list.Add(item_list[i].GetSaveData());
+                switch (item_list[i])
+                {
+                    case BuildingItem:
+                        save_data.building_list.Add(((BuildingItem)item_list[i]).GetSaveData());
+                        break;
+                    case ItemObject :
+                        save_data.item_list.Add(item_list[i].GetSaveData());
+                        break;
+                }
             return save_data;
         }
 
@@ -162,19 +186,26 @@ namespace Item
                 for (int i = 0; i < count; i++)
                     Remove(item_list[0]);
 
-                var save_list = save_data.save_list;
-                for (int i = 0; i < save_list.Count; i++)
-                    MakeItem(save_list[i].init_id,
-                             new Vector3(save_list[i].pos_x,
-                             save_list[i].pos_y,
-                             save_list[i].pos_z));
+                var items = save_data.item_list;
+                for (int i = 0; i < items.Count; i++)
+                    MakeItem(items[i].init_id,
+                             new Vector3(items[i].pos_x,
+                             items[i].pos_y,
+                             items[i].pos_z));
+
+                var builds = save_data.building_list;
+                for (int i = 0; i < builds.Count; i++)
+                    MakeBuildingItem(builds[i].blueprint_id,
+                                     builds[i].pos,
+                                     builds[i].need_resource);
             }
         }
 
         [Serializable]
         public struct SaveData
         {
-            public List<ItemObject.SaveData> save_list;
+            public List<ItemObject.SaveData> item_list;
+            public List<BuildingItem.SaveData> building_list;
         }
     }
 }

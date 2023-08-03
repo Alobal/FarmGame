@@ -18,7 +18,8 @@ public class TransitionPoint : MonoBehaviour
     {
         if (collision.CompareTag("Player"))
         {
-            TransitionManager.instance.StartTransition(origin_scene,target_scene,target_position);
+            TransitionManager.instance.StartTransition(origin_scene,target_scene);
+            collision.transform.position = target_position;
         }
     }
 }

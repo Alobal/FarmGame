@@ -64,6 +64,10 @@ public class ObjectPoolManager : Singleton<ObjectPoolManager>
         return new_object;
     }
 
+    /// <summary>
+    /// 生成音效
+    /// </summary>
+    /// <param name="sound_name"></param>
     public void GetSound(SoundName sound_name)
     {
         var sound_config = AudioManager.instance.audio_configs.Get(sound_name);
