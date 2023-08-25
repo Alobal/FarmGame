@@ -9,6 +9,7 @@ public class MenuUI : MonoBehaviour
 {
     public GameObject[] persist_ui;//开始游戏后加载持久的UI
     public GameObject[] panels;//菜单各面板
+    [SerializeField] private GameObject background;
     [SerializeField] private PlayableDirector intro_director;//开场动画控制
     //存档栏控制
     [SerializeField] private TextMeshProUGUI[] slot_show_time;
@@ -54,7 +55,7 @@ public class MenuUI : MonoBehaviour
     }
     public void LoadSave(int index)
     {
-        gameObject.SetActive(false);
+        background.gameObject.SetActive(false);
         SwitchPanel(0);//恢复首页置顶
         if (slot_valid[index])
         {
@@ -64,6 +65,7 @@ public class MenuUI : MonoBehaviour
             {
                 ui.SetActive(true);
             }
+            gameObject.SetActive(false);
 
         }
         else//开始新游戏
@@ -71,6 +73,7 @@ public class MenuUI : MonoBehaviour
             intro_director.gameObject.SetActive(true);
             intro_director.stopped += x =>
             {
+                gameObject.SetActive(false);
                 //激活UI
                 foreach (var ui in persist_ui)
                 {
@@ -79,7 +82,6 @@ public class MenuUI : MonoBehaviour
                 SaveLoadManager.StartNewGame();
             };
             intro_director.Play();
-            
         }
     }
 

@@ -18,6 +18,7 @@ namespace Item
         [SerializeField] private GameObject slot_prefab;//用于动态生成slot
         [SerializeField] private GameObject other_bag;
         private SlotUI[] other_slots;//other_bag
+        public static event Action CloseOtherBagEvent;
         //通用管理
         public ItemToolTipUI item_tooltip;
         [HideInInspector]
@@ -103,15 +104,20 @@ namespace Item
         #region 管理客体背包
         public void OpenOtherBag(ItemPackSO pack)
         {
+            ClearOtherBag();//清除上次打开的数据，否则内存泄漏
+
             List<SlotItem> data = pack.slot_datas;
             other_bag.gameObject.SetActive(true);
             other_slots=new SlotUI[data.Count];
+
+            //生成Slot
             for(int i=0;i<other_slots.Length;i++)
             {
-                var slot= Instantiate(slot_prefab, other_bag.transform.GetChild(1)).GetComponent<SlotUI>();
+                var slot= Instantiate(slot_prefab, other_bag.transform.GetChild(0)).GetComponent<SlotUI>();
                 slot.slot_type = SlotType.Shop;
                 other_slots[i]=slot;
             }
+
             //刷新布局，布局不会自动立即重绘。
             LayoutRebuilder.ForceRebuildLayoutImmediate(other_bag.GetComponent<RectTransform>());
             OnUpdatePackData(SlotType.Shop, pack);
@@ -119,11 +125,20 @@ namespace Item
 
         public void CloseOtherBag()
         {
-            other_bag.gameObject.SetActive(false);
-            for (int i = 0; i < other_slots.Length; i++)
-            {
-                Destroy(other_slots[i].gameObject);
-            }
+            ClearOtherBag();
+            CloseOtherBagEvent?.Invoke();
+        }
+
+        private void ClearOtherBag()
+        {
+            if (other_bag != null)
+                other_bag.gameObject.SetActive(false);
+            if (other_slots != null)
+                for (int i = 0; i < other_slots.Length; i++)
+                {
+                    Destroy(other_slots[i].gameObject);
+                }
+            other_slots = null;
         }
         #endregion
 

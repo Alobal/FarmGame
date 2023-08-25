@@ -34,14 +34,11 @@ namespace Map
             if (grid == null) 
                 grid = GetComponent<Grid>();
             flag_tilemaps = GetComponentsInChildren<FlagTilemap>().ToList();
-
+            //如果有保存地图数据，则加载
             if (map_property_so != null)
             {
-                TempLoad();
-                EditorUtility.SetDirty(map_property_so);
+                ReadSO();
             }
-
-            InitFlagTile();
 
             //注册为保存对象
             ISavable savable = this;
@@ -50,16 +47,17 @@ namespace Map
 
 
         /// <summary>
-        /// 注意[ExecuteInEditMode]特性使得脚本在编辑器模式中可运行。
+        /// 用于在卸载时将临时修改写入SO。
+        /// NOTE 注意[ExecuteInEditMode]特性使得脚本在编辑器模式中可运行。
         /// 并且由于Unity在进入Play mode时会自动卸载当前常场景并重新加载,因此进入Play mode会调用该脚本的OnDisabl，退出会调用OnEnable。
         /// </summary>
         private void OnDisable()
         {
             if (map_property_so != null)
-                TempSave();
+                WriteSO();
         }
 
-        private void TempLoad()
+        private void ReadSO()
         {
             //加载保存的tile数据
             tile_dict = map_property_so.ListToDict();
@@ -74,7 +72,7 @@ namespace Map
         }
 
         //保存TileDetail数据，注意不会保存TileBase的贴图修改，这与TileDetail无关。
-        private void TempSave()
+        private void WriteSO()
         {
             map_property_so.DictToList(tile_dict);
         }
@@ -88,7 +86,7 @@ namespace Map
                 tile_detail.day_from_dig = day_from_dig;
                 if (!tile_detail.is_timing)
                     tile_detail.StartTimeEvent();
-                TempSave();
+                WriteSO();
             }
         }
 
@@ -100,7 +98,7 @@ namespace Map
                 tile_detail.day_from_water = day_from_water;
                 if (!tile_detail.is_timing)
                     tile_detail.StartTimeEvent();
-                TempSave();
+                WriteSO();
             }
         }
 
@@ -137,15 +135,16 @@ namespace Map
         {
             return (map_property_so.grid_shape, map_property_so.bottom_left);
         }
-
+#if UNITY_EDITOR
         /// <summary>
         /// 检查所有flag_tilemap，从左下角到右上角更新每个tile的Flag。每次覆盖更新。
         /// </summary>
-        [InspectorButton("初始化Tilemap Flags")]
+        [InspectorButton("复原耕种Tilemap")]
         [Conditional("UNITY_EDITOR")]
-        private void InitFlagTile()
+        private void ResetCropTile()
         {
             tile_dict.Clear();
+            //遍历每一种flag tilemap处理
             foreach (var flag_tilemap in flag_tilemaps)
             {
                 Tilemap tilemap = flag_tilemap.tilemap;
@@ -155,44 +154,49 @@ namespace Map
                 Vector3Int min_cell = tilemap.cellBounds.min;
                 Vector3Int max_cell = tilemap.cellBounds.max;
 
-                //循环所有tile，
+                //循环该flag tilemap中所有tile进行重建
                 for (int x = min_cell.x; x < max_cell.x; x++)
                 {
                     for (int y = min_cell.y; y < max_cell.y; y++)
                     {
-                        Vector3Int cell_pos = new Vector3Int(x, y, 0);
-                        if (tilemap.GetTile(cell_pos) is TileBase tile)
+                        Vector3Int grid3_pos = new Vector3Int(x, y, 0);
+                        if (tilemap.GetTile(grid3_pos) is TileBase tile)
                         {
-                            var new_cell_pos = new Vector2Int(x, y);
-                            if (!tile_dict.ContainsKey(new_cell_pos))
+                            var grid2_pos = new Vector2Int(x, y);
+                            //第一次重建tile时 复原被修改的贴图
+                            if (!tile_dict.ContainsKey(grid2_pos))
                             {
-                                tile_dict.Add(new_cell_pos, new TileDetail(new_cell_pos, property));
-                                dig_tilemap.SetTile(cell_pos, null);
-                                water_tilemap.SetTile(cell_pos, null);
+                                tile_dict.Add(grid2_pos, new TileDetail(grid2_pos, property));
+                                dig_tilemap.SetTile(grid3_pos, null);
+                                water_tilemap.SetTile(grid3_pos, null);
                             }
                             else
-                                tile_dict[new_cell_pos].AddProperty(property);
+                                tile_dict[grid2_pos].AddProperty(property);
                         }
                     }
                 }
             }
             CropManager.instance.Clear();
-            TempSave();
+
+            EditorUtility.SetDirty(map_property_so);
+
+            WriteSO();
         }
+#endif
 
         #region 存档相关
-        public void Save()
+        public void SaveProfile()
         {
             var list=map_property_so.DictToList(tile_dict);
             GameSaveData.instance.scene_tile_pos[gameObject.scene.name] = list.Item1;
             GameSaveData.instance.scene_tile_detail[gameObject.scene.name] = list.Item2;
         }
 
-        public void Load()
+        public void LoadProfile()
         {
-            List<Vector2Int> tile_poses= GameSaveData.instance.scene_tile_pos[gameObject.scene.name];
-            List<TileDetail> tile_detail_list = GameSaveData.instance.scene_tile_detail[gameObject.scene.name];
-            tile_dict = MapPropertySO.ListToDict(tile_poses, tile_detail_list);
+            map_property_so.cell_postions= GameSaveData.instance.scene_tile_pos[gameObject.scene.name];
+           map_property_so.tile_details = GameSaveData.instance.scene_tile_detail[gameObject.scene.name];
+            tile_dict = map_property_so.ListToDict();
             //恢复特殊tile的贴图
             foreach (var tile_detail in tile_dict.Values)
             {

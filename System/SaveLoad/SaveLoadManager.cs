@@ -57,11 +57,10 @@ namespace Save
             string file_name = $"save_{index}.json";
             string save_path = save_dir + file_name;
             GameSaveData.instance.Save();
+            //将数据写入序列化文件
             if (!Directory.Exists(save_dir))
                 Directory.CreateDirectory(save_dir);
-
             var serialize_data = JsonConvert.SerializeObject(GameSaveData.instance, Formatting.Indented);
-            
             File.WriteAllText(save_path, serialize_data);
         }
 

@@ -14,10 +14,14 @@ namespace Light
         bool is_updating = false;
 
         // Start is called before the first frame update
-        void Start()
+        void Awake()
         {
             light_com = GetComponent<Light2D>();
+        }
 
+        private void Start()
+        {
+            UpdateLight(0);
         }
 
         private void OnEnable()

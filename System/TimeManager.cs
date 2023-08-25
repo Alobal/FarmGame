@@ -86,12 +86,12 @@ public class TimeManager : Singleton<TimeManager>,Save.ISavable
 
                 second_total +=(int)tik_time;
                 tik_time -= (int)tik_time;
-                UpdateTimeEvent();
+                UpdateTime();
             }
         }
     }
 
-    private void UpdateTimeEvent()
+    private void UpdateTime(bool fire_event=true)
     {
         //delta minute
         int minutes_temp= Settings.init_minute+second_total / Settings.second_hold;
@@ -99,7 +99,8 @@ public class TimeManager : Singleton<TimeManager>,Save.ISavable
         if (delta_min>0)
         {
             minute_total = minutes_temp;
-            MinuteEvent?.Invoke(delta_min);
+            if(fire_event)
+                MinuteEvent?.Invoke(delta_min);
 
             //continue hour
             int hour_temp = Settings.init_hour+second_total / (Settings.minute_hold * Settings.second_hold);
@@ -107,7 +108,8 @@ public class TimeManager : Singleton<TimeManager>,Save.ISavable
             if (delta_hour>0)
             {
                 hour_total = hour_temp;
-                HourEvent?.Invoke(delta_hour);
+                if(fire_event)
+                    HourEvent?.Invoke(delta_hour);
 
                 //continue day
                 int day_temp = Settings.init_day+second_total / (Settings.hour_hold * Settings.minute_hold *Settings.second_hold);
@@ -115,7 +117,8 @@ public class TimeManager : Singleton<TimeManager>,Save.ISavable
                 if (delta_day>0)
                 {
                     day_total = day_temp;
-                    DayEvent?.Invoke(delta_day);
+                    if (fire_event)
+                        DayEvent?.Invoke(delta_day);
 
                     //continue month
                     int month_temp = Settings.init_month+second_total / (Settings.day_hold * Settings.hour_hold
@@ -124,7 +127,8 @@ public class TimeManager : Singleton<TimeManager>,Save.ISavable
                     if (month_temp > month_total)
                     {
                         month_total = month_temp;
-                        MonthEvent?.Invoke(delta_month);
+                        if (fire_event)
+                            MonthEvent?.Invoke(delta_month);
 
                         //continue year
                         int year_temp = Settings.init_year + second_total / (Settings.month_hold * Settings.day_hold *
@@ -133,7 +137,8 @@ public class TimeManager : Singleton<TimeManager>,Save.ISavable
                         if (year_temp > year_total)
                         {
                             year_total = year_temp;
-                            YearEvent?.Invoke(delta_year);
+                            if (fire_event)
+                                YearEvent?.Invoke(delta_year);
                         }
                     }
                 }
@@ -149,20 +154,16 @@ public class TimeManager : Singleton<TimeManager>,Save.ISavable
                 minute * Settings.minute_hold;
     }
 
-    public void Save()
+    public void SaveProfile()
     {
         GameSaveData.instance.second_total = second_total;
     }
 
-    public void Load()
+    public void LoadProfile()
     {
+        //FIX 初始化时会导致很大的TimeEvent
         second_total=GameSaveData.instance.second_total;
-        minute_total = Settings.init_minute;
-        hour_total = Settings.init_hour;
-        day_total = Settings.init_day;
-        month_total = Settings.init_month;
-        year_total = Settings.init_year;
-        UpdateTimeEvent();
+        UpdateTime(false);
 
     }
 }

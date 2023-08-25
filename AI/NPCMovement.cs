@@ -65,7 +65,7 @@ public class NPCMovement : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if (pause_moving==false && current_schedule != null)//存在可行的寻路目标
+        if (schedule_data!=null && pause_moving==false && current_schedule != null)//存在可行的寻路目标
         {
             //还没有为current_schedule构建path，则尝试构建新的path
             if (path_nodes.Count == 0 && current_gridpos != current_schedule.target_gridpos)

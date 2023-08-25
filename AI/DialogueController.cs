@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.Events;
 
 
-[RequireComponent(typeof(NPCMovement), typeof(BoxCollider2D))]
+[RequireComponent(typeof(BoxCollider2D))]
 //每个NPC自己的对话控制器
 public class DialogueController : MonoBehaviour
 {
@@ -18,7 +18,7 @@ public class DialogueController : MonoBehaviour
     public bool is_talking;
     private bool player_near=false;
     private int diag_index;
-    private bool can_talk { get { return movement.is_moving == false && !is_talking && player_near; } }
+    private bool can_talk { get { return !is_talking && player_near; } }
     private DialoguePiece current_diag{get { return dialogue_list[diag_index]; }}
     // Start is called before the first frame update
     void Start()
@@ -29,6 +29,8 @@ public class DialogueController : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
+        if (collision.tag != "Player")
+            return;
         player_near = true;
         if (can_talk)
             button_tip.SetActive(true);
@@ -36,7 +38,10 @@ public class DialogueController : MonoBehaviour
 
     private void OnTriggerExit2D(Collider2D collision)  
     {
+        if (collision.tag != "Player")
+            return;
         player_near = false;
+        //is_talking = false;
         button_tip.SetActive(false);
     }
 
@@ -54,7 +59,9 @@ public class DialogueController : MonoBehaviour
     {
         if(diag_index < dialogue_list.Count)//剩余对话
         {
-            movement.pause_moving = true;
+            if(movement!=null)
+                movement.pause_moving = true;
+
             is_talking = true;
             //控制UI开始对话
             DialogueUI.instance.Invoke(current_diag);
@@ -62,7 +69,9 @@ public class DialogueController : MonoBehaviour
             yield return new WaitUntil(() => current_diag.is_done);
             diag_index++;
             is_talking=false;
-            movement.pause_moving = false;
+
+            if (movement != null)
+                movement.pause_moving = false;
 
         }
         else//到达对话末尾

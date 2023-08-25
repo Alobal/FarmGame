@@ -1,14 +1,11 @@
 using Item;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using Map;
 using Crop;
 using Audio;
 using Save;
-using UnityEditorInternal;
 
 public class Player : MonoBehaviour,Save.ISavable
 {
@@ -323,12 +320,12 @@ public class Player : MonoBehaviour,Save.ISavable
     }
     #endregion
 
-    public void Save()
+    public void SaveProfile()
     {
         GameSaveData.instance.character_pos[GUID]=transform.position;
     }
 
-    public void Load()
+    public void LoadProfile()
     {
         GameSaveData save_data=GameSaveData.instance;
         //StartCoroutine(TransitionManager.instance.LoadSceneSetActive(save_data.scene_name));

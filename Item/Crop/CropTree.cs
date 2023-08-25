@@ -10,10 +10,10 @@ namespace Crop
     public class CropTree : CropObject
     {
         //NOTE 子类有则覆盖基类，不会主动调用基类，除非base。子类没有则会自动调用基类，即使基类是private
-        protected override void Start()
+        protected override void Awake()
         {
             animator=GetComponentInChildren<Animator>();
-            base.Start();
+            base.Awake();
         }
         /// <summary>
         /// 根据current_day 更新当前植物的生长状态

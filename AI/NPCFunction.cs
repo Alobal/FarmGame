@@ -7,7 +7,7 @@ public class NPCFunction : MonoBehaviour
 {
     public ItemPackSO pack_data;
     private DialogueController dia_controller;
-    static private bool bag_is_open;
+    private bool bag_is_open;
     // Start is called before the first frame update
     void Start()
     {
@@ -20,16 +20,16 @@ public class NPCFunction : MonoBehaviour
     {
         if (bag_is_open && Input.GetKeyDown(KeyCode.Escape))
         {
-            CloseBag();
+            PackUIManager.instance.CloseOtherBag();
         }
     }
-
+    
     public void CloseBag()
     {
         bag_is_open = false;
         dia_controller.is_talking = false;
         PackDataManager.instance.other_bag = null;
-        PackUIManager.instance.CloseOtherBag();
+        PackUIManager.CloseOtherBagEvent -= CloseBag;
 
     }
 
@@ -38,6 +38,7 @@ public class NPCFunction : MonoBehaviour
         bag_is_open = true;
         dia_controller.is_talking = true;
         PackDataManager.instance.other_bag = pack_data;
+        PackUIManager.CloseOtherBagEvent += CloseBag;
         PackUIManager.instance.OpenOtherBag(pack_data);
 
     }

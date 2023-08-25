@@ -17,7 +17,7 @@ namespace Item
         public GameObject building_item_prefab;
         private const string serialize_file = "WorldItemList.json";
         private string serialize_dir;
-        private string serialize_path;
+        private string serialize_path;//临时存储文件，以便让有些东西在游戏开始后临时保存，游戏退出后复原。
 
         string ISavable.GUID => GetComponent<Save.Guid>().guid;
 
@@ -61,7 +61,7 @@ namespace Item
             if (File.Exists(serialize_path))
             {
                 File.Delete(serialize_path);
-                Debug.Log("清除文件成功");
+                Debug.Log("清除临时文件成功");
             }
         }
         /// <summary>
@@ -172,13 +172,13 @@ namespace Item
             Debug.Log($"清除文件失败：{serialize_path}");
         }
 
-        public void Save()
+        public void SaveProfile()
         {
             var save_data = GetSaveData();
             GameSaveData.instance.scene_items[gameObject.scene.name]=save_data;
         }
 
-        public  void Load()
+        public  void LoadProfile()
         {
             if(GameSaveData.instance.scene_items[gameObject.scene.name] is SaveData save_data)
             {

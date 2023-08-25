@@ -34,6 +34,8 @@ public class TimeUI : MonoBehaviour
         }
         OnHourEvent(0);
         OnDayEvent(0);
+        //FIX TimeUI会在时间管理器之前刷新时间，导致显示错误，下面是一个trick。
+        StartCoroutine(UtilityMethods.WaitDoCR(UpdateBlock, 1));
     }
 
     private void OnEnable()

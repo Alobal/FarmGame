@@ -7,6 +7,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Rendering;
 using Random = UnityEngine.Random;
 namespace Crop
 {
@@ -15,7 +16,7 @@ namespace Crop
     {
         public int seed_id = 0;//用于Start中根据id找到cropdetail
         public Vector2Int tile_pos;//所属tile的grid pos
-        public int current_day = 0;//当前种下的天数
+        public int current_day = 0;//当前种下的天数 
         protected CropDetail crop_detail;
         protected int[] harvest_action_count;
         //Component
@@ -42,11 +43,16 @@ namespace Crop
         public bool is_wild { get { return tile_pos==Vector2.zero; } }//是野生则仅在开始游戏时加载
         public bool is_ripe { get { return grow_stage >= crop_detail.grow_days.Length; } }
 
-        protected virtual void Start()
+        protected virtual void Awake()
         {
             sprite_render = GetComponent<SpriteRenderer>();
             collide = GetComponent<BoxCollider2D>();
             particle_pos = (Vector2)transform.position + particle_localpos;
+
+        }
+
+        protected virtual void Start()
+        {
             if (seed_id != 0)//外部设置好seed后 自动内部初始化
                 InitInternal();//NOTE 不能在Awake里调用Awake唤醒的单例
         }

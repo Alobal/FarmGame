@@ -13,7 +13,7 @@ namespace Crop
     {
         public CropSourceDataSO source_data;
         public List<CropObject> crop_list;//在tile中种植的crop，需要在退出时保存所有状态，并在开始时重新加载
-        private const string crop_save_file = "CropList.json";
+        private const string crop_save_file = "CropList.json";//运行时存储文件，退出游戏清空
         private string save_dir;
         private string crop_save_path;
 
@@ -31,7 +31,7 @@ namespace Crop
         }
         private void OnEnable()
         {
-            LoadOnBeginning();
+            ReadFile();
             TransitionManager.BeforeSceneUnload +=SaveOnTransition;
         }
 
@@ -48,7 +48,11 @@ namespace Crop
 
         private void OnApplicationQuit()
         {
-            Save(false);
+            //清除运行时存储文件
+            if (File.Exists(crop_save_path))
+            {
+                File.Delete(crop_save_path);
+            }
         }
 
 
@@ -126,9 +130,9 @@ namespace Crop
         {
             return crop_list.Find(x => (Vector2) x.transform.position == pos);
         }
-
-        //读取记录时，清空Manager已管理的crop，再从记录文件读取生成。
-        private void LoadOnBeginning()
+        #region 运行时存储
+        //读取记录时，清空Manager已管理的crop，再从Once文件读取生成。
+        private void ReadFile()
         {
             if (File.Exists(crop_save_path))
             {
@@ -152,7 +156,7 @@ namespace Crop
         /// 以便下次游戏开始时直接从场景预设读取野生Crop。
         /// </summary>
         /// <param name="save_wild">fasle时不保存野生Crop状态。在游戏退出时False，</param>
-        private void Save(bool save_wild=true)
+        private void WriteFile(bool save_wild=true)
         {
             if (!File.Exists(save_dir))
                 Directory.CreateDirectory(save_dir);
@@ -162,22 +166,15 @@ namespace Crop
             File.WriteAllText(crop_save_path, JsonUtility.ToJson(save_data));
         }
 
-        public SaveData GetSaveData(bool save_wild)
-        {
-            SaveData save_data = new();
-            save_data.save_list = new();
-            for (int i = 0; i < crop_list.Count; i++)
-            {
-                if (crop_list[i].is_wild && save_wild == false)//野生作物特殊处理
-                    continue;
-                save_data.save_list.Add(crop_list[i].GetSaveData());
-            }
-            return save_data;
+        #endregion
+
+
+        private void SaveOnTransition() 
+        { 
+            WriteFile(); 
         }
 
-        private void SaveOnTransition() { Save(); }
-
-
+#if UNITY_EDITOR
         [InspectorButton("清除Crop数据")]
         private void ClearSaveData()
         {
@@ -193,14 +190,15 @@ namespace Crop
             else
                 Debug.Log($"清除文件失败：{crop_save_path}");
         }
-
-        public void Save()
+#endif
+        #region 存档相关
+        public void SaveProfile()
         {
             SaveData save_data = GetSaveData(true);
             GameSaveData.instance.scene_crops[gameObject.scene.name]=save_data;
         }
 
-        public void Load()
+        public void LoadProfile()
         {
             if(GameSaveData.instance.scene_crops[gameObject.scene.name] is SaveData save_data)
             {
@@ -216,11 +214,26 @@ namespace Crop
                              save_list[i].current_day);
             }
         }
+        #endregion
 
         [Serializable]
         public struct SaveData
         {
             public List<CropObject.SaveData> save_list;
+        }
+
+
+        public SaveData GetSaveData(bool save_wild)
+        {
+            SaveData save_data = new();
+            save_data.save_list = new();
+            for (int i = 0; i < crop_list.Count; i++)
+            {
+                if (crop_list[i].is_wild && save_wild == false)//野生作物特殊处理
+                    continue;
+                save_data.save_list.Add(crop_list[i].GetSaveData());
+            }
+            return save_data;
         }
     }
 }

@@ -26,7 +26,7 @@ namespace Item
         protected override void Awake()
         {
             base.Awake();
-            EditorUtility.SetDirty(player_bag);
+            //EditorUtility.SetDirty(player_bag);
 
             //注册为保存对象
             ISavable savable = this;
@@ -151,13 +151,13 @@ namespace Item
             {
                 if(amount> source_bag[source.index].item_amount)
                 {
-                    Debug.Log("商店数量不足");
+                    NotificationUI.instance.Notify("商店数量不足");
                     return false;
                 }
                 cost = source.item_detail.price * amount;
                 if(cost > player_bag.money)
                 {
-                    Debug.Log("玩家金钱不足");
+                    NotificationUI.instance.Notify("玩家金钱不足");
                     return false;
                 }
             }
@@ -185,12 +185,12 @@ namespace Item
             return slot_type == SlotType.Player ? player_bag : other_bag;
         }
 
-        public void Save()
+        public void SaveProfile()
         {
             GameSaveData.instance.pack_data[GUID]=player_bag;
         }
 
-        public void Load()
+        public void LoadProfile()
         {
             
             player_bag.Clone(GameSaveData.instance.pack_data[GUID]);

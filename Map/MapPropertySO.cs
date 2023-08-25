@@ -18,8 +18,10 @@ namespace Map
         public string scene_name;
         public Vector2Int grid_shape;//网格地图的宽高
         public Vector2Int bottom_left;//网格地图左下角的点，用于校正原点
-        [SerializeField] private List<Vector2Int> cell_postions;//dict无法序列化，转为双List进行存储，运行加载后重建dict
-        [SerializeField] private List<TileDetail> tile_details;
+
+        //dict无法序列化，转为双List进行存储，运行加载后重建dict
+        public List<Vector2Int> cell_postions;
+        public List<TileDetail> tile_details;
 
         //将字典转化为可序列化存储的双List
         public (List<Vector2Int>, List<TileDetail>) DictToList(Dictionary<Vector2Int, TileDetail> dict)
@@ -39,6 +41,7 @@ namespace Map
             return dict;
         }
 
+        //将list数据转换为字典数据
         public static Dictionary<Vector2Int, TileDetail> ListToDict(List<Vector2Int> tile_pos, List<TileDetail> tile_detail)
         {
             Dictionary<Vector2Int, TileDetail> dict = new();
